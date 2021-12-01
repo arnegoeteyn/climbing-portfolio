@@ -1,0 +1,56 @@
+{
+    "routes": [
+        {
+            "id": 1,
+            "name": "glaspatronenmatch",
+            "grade": "8a",
+            "description": "heel leuk",
+            "kind": "lead",
+            "ascentIds": [
+                1,
+                2
+            ]
+        },
+        {
+            "id": 2,
+            "name": "nirvana",
+            "grade": "7c",
+            "description": "cava wel",
+            "kind": "lead"
+        },
+        {
+            "id": 3,
+            "name": "Samarkand",
+            "grade": "7A",
+            "description": null,
+            "kind": "boulder"
+        }
+    ],
+    "areas": [
+        {
+            "id": 1,
+            "name": "Frankenjura",
+            "country": "Germany"
+        },
+        {
+            "id": 2,
+            "name": "Fontainebleau",
+            "country": "France"
+        }
+    ],
+    "sectors": [],
+    "ascents": [
+        {
+            "id": 1,
+            "routeId": 1,
+            "date": "2020/09/01",
+            "kind": "onsight"
+        },
+        {
+            "id": 2,
+            "routeId": 1,
+            "date": "2020/09/01",
+            "kind": "repeat"
+        }
+    ]
+}

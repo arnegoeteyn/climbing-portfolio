@@ -1,0 +1,54 @@
+{
+    "routes": [
+        {
+            "id": 1,
+            "name": "glaspatronenmatch",
+            "grade": "8a",
+            "description": "heel leuk",
+            "ascentIds": [
+                1,
+                2
+            ]
+        },
+        {
+            "id": 2,
+            "name": "nirvana",
+            "grade": "7c",
+            "description": "cava wel",
+            "ascentIds": null
+        },
+        {
+            "id": 3,
+            "name": "Samarkand",
+            "grade": "7A",
+            "description": null,
+            "ascentIds": null
+        },
+        {
+            "id": 4,
+            "name": "fatfinger",
+            "grade": "8a",
+            "description": "dit is nieuw",
+            "ascentIds": []
+        },
+        {
+            "id": 5,
+            "name": "dragentanz",
+            "grade": "7b",
+            "description": "dit is nieuw",
+            "ascentIds": []
+        }
+    ],
+    "ascents": [
+        {
+            "id": 1,
+            "routeId": 1,
+            "date": "2020/09/01"
+        },
+        {
+            "id": 2,
+            "routeId": 1,
+            "date": "2020/09/01"
+        }
+    ]
+}
