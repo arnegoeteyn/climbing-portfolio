@@ -1,27 +1,41 @@
 module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
+import Data exposing (jsonFileDecoder)
 import DatePicker
 import Dict
+import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Msg, Route(..))
 import Model exposing (ClimbingRouteForm, ClimbingRoutesModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
 
-init : Url -> Key -> ( Model, Cmd Msg )
-init url key =
+init : String -> Url -> Key -> ( Model, Cmd Msg )
+init storageCache url key =
     let
         ( climbingRoutesModel, routesCmd ) =
             routesModel
+
+        decodedStorage =
+            decodeString jsonFileDecoder storageCache
+
+        jsonFile =
+            Result.withDefault { climbingRoutes = Dict.empty, ascents = Dict.empty, sectors = Dict.empty } <| decodedStorage
     in
-    ( { appState = Model.NotReady
+    ( { appState =
+            case decodedStorage of
+                Result.Ok _ ->
+                    Model.Ready
+
+                Result.Err _ ->
+                    Model.NotReady
       , url = url
       , route = parseUrl url
       , key = key
-      , climbingRoutes = Dict.empty
-      , ascents = Dict.empty
-      , sectors = Dict.empty
+      , climbingRoutes = jsonFile.climbingRoutes
+      , ascents = jsonFile.ascents
+      , sectors = jsonFile.sectors
       , climbingRoutesModel = climbingRoutesModel
       }
     , routesCmd

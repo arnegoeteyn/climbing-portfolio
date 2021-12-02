@@ -41,6 +41,7 @@ encodedJsonFile root =
     Json.Encode.object
         [ ( "routes", Json.Encode.list encodeClimbingRoute (Dict.values root.climbingRoutes) )
         , ( "ascents", Json.Encode.list encodeAscent (Dict.values root.ascents) )
+        , ( "sectors", Json.Encode.list encodeSector (Dict.values root.sectors) )
         ]
 
 
