@@ -45,5 +45,16 @@ updateClimbingRoute msg model =
 
                 Message.CloseNewRouteForm ->
                     ( { climbingRouteModel | form = Nothing }, Cmd.none )
+
+                Message.FormSector sectorIdString ->
+                    case climbingRouteModel.form of
+                        Just form ->
+                            ( { form | sectorId = sectorIdString }
+                                |> (\newForm -> { climbingRouteModel | form = Just newForm })
+                            , Cmd.none
+                            )
+
+                        Nothing ->
+                            ( climbingRouteModel, Cmd.none )
     in
     ( { model | climbingRoutesModel = updatedClimbingRouteModel }, cmdMsg )

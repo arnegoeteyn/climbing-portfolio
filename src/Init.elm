@@ -62,6 +62,7 @@ initClimbingRouteForm : ClimbingRouteForm
 initClimbingRouteForm =
     { name = ""
     , grade = ""
+    , sectorId = ""
     }
 
 

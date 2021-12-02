@@ -38,4 +38,5 @@ type alias ClimbingRoutesModel =
 type alias ClimbingRouteForm =
     { name : String
     , grade : String
+    , sectorId : String
     }

@@ -55,27 +55,43 @@ update msg model =
         ExportRequested ->
             let
                 result =
-                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = Dict.empty }
+                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors }
             in
             ( model, File.Download.string "result.json" "application/json" result )
-
-        SaveRouteRequested ->
-            case model.climbingRoutesModel.form of
-                Just form ->
-                    let
-                        newClimbingRoute =
-                            { name = form.name, sectorId = Nothing, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
-                    in
-                    ( { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes }, Cmd.none )
-
-                Nothing ->
-                    ( model, Cmd.none )
 
         ClimbingRoute climbingRouteMsg ->
             updateClimbingRoute climbingRouteMsg model
 
         Home homeMsg ->
             ( model, Cmd.none )
+
+        SaveRouteRequested ->
+            case model.climbingRoutesModel.form of
+                Just form ->
+                    let
+                        maybeSector =
+                            Dict.get (Maybe.withDefault 0 <| String.toInt form.sectorId) model.sectors
+
+                        newClimbingRoute =
+                            { name = form.name, sectorId = String.toInt form.sectorId, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
+
+                        newRouteIds =
+                            newClimbingRoute.id
+                                :: (maybeSector
+                                        |> Maybe.andThen .routeIds
+                                        |> Maybe.withDefault []
+                                   )
+
+                        modifiedSectors =
+                            maybeSector
+                                |> Maybe.map (\sector -> { sector | routeIds = Just newRouteIds })
+                                |> Maybe.map (\sector -> Dict.insert sector.id sector model.sectors)
+                                |> Maybe.withDefault model.sectors
+                    in
+                    ( { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         ToDatePicker subMsg ->
             let

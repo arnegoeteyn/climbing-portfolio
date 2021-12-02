@@ -11,7 +11,6 @@ var app = Elm.Main.init({
 });
 
 app.ports.storeCache.subscribe(function (val) {
-  console.log(val)
 
   if (val === null) {
     localStorage.removeItem(storageKey);

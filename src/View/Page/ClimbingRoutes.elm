@@ -2,9 +2,9 @@ module View.Page.ClimbingRoutes exposing (..)
 
 import Data exposing (ClimbingRoute)
 import Dict
-import Html.Styled exposing (Html, button, div, li, text, ul)
-import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (onClick)
+import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
+import Html.Styled.Attributes exposing (css, value)
+import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), Msg(..))
 import Model exposing (Model)
 import Tailwind.Utilities as Tw
@@ -20,7 +20,7 @@ viewClimbingRoutes model =
                 Nothing ->
                     button [ onClick (Message.ClimbingRoute <| ShowNewRouteForm) ] [ text "add route" ]
 
-                Just form ->
+                Just _ ->
                     div []
                         [ button [ onClick (Message.ClimbingRoute CloseNewRouteForm) ] [ text "close form" ]
                         , button [ onClick Message.SaveRouteRequested ] [ text "save form" ]
@@ -49,6 +49,9 @@ viewRouteForm model =
             div []
                 [ viewInput "text" "Name" justForm.name (Message.ClimbingRoute << Message.FormName)
                 , viewInput "text" "Grade" justForm.grade (Message.ClimbingRoute << FormGrade)
+                , select [ onInput (Message.ClimbingRoute << FormSector) ] <|
+                    option [ value "" ] [ text "" ]
+                        :: (Dict.values model.sectors |> List.map (\sector -> option [ value <| String.fromInt sector.id ] [ text sector.name ]))
                 ]
 
 
