@@ -10,11 +10,11 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString, maybe)
+import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Msg(..))
 import Model exposing (AppState(..), Model)
-import Task exposing (Task)
+import Task
 import Update.ClimbingRoute exposing (updateClimbingRoute)
 import Url
 import Utilities exposing (newId)
@@ -47,7 +47,7 @@ update msg model =
             in
             case result of
                 Ok file ->
-                    ( { model | appState = Ready, climbingRoutes = file.climbingRoutes, ascents = file.ascents }, Cmd.none )
+                    ( { model | appState = Ready, climbingRoutes = file.climbingRoutes, ascents = file.ascents, sectors = file.sectors }, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -55,7 +55,7 @@ update msg model =
         ExportRequested ->
             let
                 result =
-                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents }
+                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = Dict.empty }
             in
             ( model, File.Download.string "result.json" "application/json" result )
 
@@ -64,7 +64,7 @@ update msg model =
                 Just form ->
                     let
                         newClimbingRoute =
-                            { name = form.name, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
+                            { name = form.name, sectorId = Nothing, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
                     in
                     ( { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes }, Cmd.none )
 

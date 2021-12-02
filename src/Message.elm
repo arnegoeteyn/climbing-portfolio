@@ -11,6 +11,8 @@ type Route
     = HomeRoute
     | AscentsRoute
     | RoutesRoute
+    | SectorsRoute
+    | AreasRoute
     | NotFoundRoute
 
 

@@ -19,6 +19,9 @@ viewClimbingRouteCard maybeClimbingRoute model =
 
         Just climbingRoute ->
             let
+                maybeSector =
+                    Maybe.andThen (\x -> Dict.get x model.sectors) climbingRoute.sectorId
+
                 cardTailwindProperties =
                     css [ Tw.rounded_xl, Tw.shadow_lg, Tw.bg_purple_100 ]
 
@@ -26,7 +29,7 @@ viewClimbingRouteCard maybeClimbingRoute model =
                     css [ Tw.rounded_t_lg, Tw.h_60, Tw.w_full, Tw.object_cover ]
 
                 cardHeaderTextTWProperties =
-                    css [ Tw.text_xl, Tw.font_extrabold, Tw.p_4 ]
+                    css [ Tw.text_xl, Tw.font_extrabold, Tw.px_4 ]
 
                 cardContentTWProperties =
                     css [ Tw.px_5 ]
@@ -34,11 +37,13 @@ viewClimbingRouteCard maybeClimbingRoute model =
                 cardDescriptionTWProperties =
                     css [ Tw.px_4, Tw.text_gray_400 ]
 
+                cardAreaDescriptionTWProperties =
+                    css [ Tw.text_xs, Tw.text_left, Tw.text_gray_400 ]
+
                 cardFooterTWProperties =
                     css [ Tw.text_right, Tw.py_3, Tw.px_8, Tw.text_gray_400 ]
 
                 cardButtonTWProperties =
-                    -- hover:bg-green-600
                     css [ Tw.py_2, Tw.px_4, Tw.mt_5, Tw.bg_green_500, Tw.rounded_lg, Tw.text_white, Tw.font_semibold ]
             in
             div [ cardTailwindProperties ]
@@ -49,7 +54,8 @@ viewClimbingRouteCard maybeClimbingRoute model =
                     []
                 , header [ cardHeaderTextTWProperties ] [ text <| climbingRoute.name ++ " [" ++ climbingRoute.grade ++ "]" ]
                 , div [ cardContentTWProperties ]
-                    [ p [ cardDescriptionTWProperties ] [ text <| Maybe.withDefault "" climbingRoute.description ]
+                    [ p [ cardAreaDescriptionTWProperties ] [ text <| (Maybe.map (\sector -> sector.name ++ " ~ Fontainebleau") maybeSector |> Maybe.withDefault "") ]
+                    , p [ cardDescriptionTWProperties ] [ text <| Maybe.withDefault "" climbingRoute.description ]
                     , viewAscents climbingRoute model
                     ]
                 , footer [ cardFooterTWProperties ] [ button [ cardButtonTWProperties ] [ text "edit" ] ]

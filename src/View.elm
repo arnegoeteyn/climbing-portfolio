@@ -36,7 +36,9 @@ viewHeader model =
         links =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
+                , navLink AscentsRoute { url = "/ascents", caption = "Ascents" }
                 , navLink RoutesRoute { url = "/routes", caption = "Routes" }
+                , navLink SectorsRoute { url = "/sectors", caption = "Sectors" }
                 ]
 
         navAttributes =
@@ -84,6 +86,12 @@ viewPage model =
 
             AscentsRoute ->
                 text "routes"
+
+            SectorsRoute ->
+                text "sectors"
+
+            AreasRoute ->
+                text "areas"
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

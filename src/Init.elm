@@ -1,7 +1,6 @@
 module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
-import Date
 import DatePicker
 import Dict
 import Message exposing (ClimbingRouteMsg(..), Msg, Route(..))
@@ -22,6 +21,7 @@ init url key =
       , key = key
       , climbingRoutes = Dict.empty
       , ascents = Dict.empty
+      , sectors = Dict.empty
       , climbingRoutesModel = climbingRoutesModel
       }
     , routesCmd
@@ -57,6 +57,7 @@ routeParser =
         [ Parser.map HomeRoute Parser.top
         , Parser.map RoutesRoute (Parser.s "routes")
         , Parser.map AscentsRoute (Parser.s "ascents")
+        , Parser.map SectorsRoute (Parser.s "sectors")
         ]
 
 

@@ -1,4 +1,4 @@
-module Data exposing (Ascent, AscentKind, ClimbingRoute, encodedJsonFile, jsonFileDecoder)
+module Data exposing (..)
 
 import Dict exposing (Dict)
 import Json.Decode exposing (int, list, string)
@@ -10,25 +10,30 @@ import Utilities exposing (encodeNullable)
 type alias JsonFile =
     { climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent
+    , sectors : Dict Int Sector
     }
 
 
 jsonFileDecoder : Json.Decode.Decoder JsonFile
 jsonFileDecoder =
     let
-        decodedRoutes : Json.Decode.Decoder (Dict Int ClimbingRoute)
-        decodedRoutes =
-            Json.Decode.list (Json.Decode.map2 Tuple.pair (Json.Decode.field "id" int) climbingRouteDecoder)
+        generalDecoder specificDecoder =
+            Json.Decode.list (Json.Decode.map2 Tuple.pair (Json.Decode.field "id" int) specificDecoder)
                 |> Json.Decode.map Dict.fromList
 
-        decodedAscents : Json.Decode.Decoder (Dict Int Ascent)
+        decodedRoutes =
+            generalDecoder climbingRouteDecoder
+
         decodedAscents =
-            Json.Decode.list (Json.Decode.map2 Tuple.pair (Json.Decode.field "id" int) ascentsDecoder)
-                |> Json.Decode.map Dict.fromList
+            generalDecoder ascentsDecoder
+
+        decodedSectors =
+            generalDecoder sectorDecoder
     in
-    Json.Decode.map2 JsonFile
+    Json.Decode.map3 JsonFile
         (Json.Decode.field "routes" <| decodedRoutes)
         (Json.Decode.field "ascents" <| decodedAscents)
+        (Json.Decode.field "sectors" <| decodedSectors)
 
 
 encodedJsonFile : JsonFile -> Json.Encode.Value
@@ -41,6 +46,7 @@ encodedJsonFile root =
 
 type alias ClimbingRoute =
     { id : Int
+    , sectorId : Maybe Int
     , name : String
     , grade : String
     , description : Maybe String
@@ -52,6 +58,7 @@ climbingRouteDecoder : Json.Decode.Decoder ClimbingRoute
 climbingRouteDecoder =
     Json.Decode.succeed ClimbingRoute
         |> required "id" int
+        |> optional "sectorId" (Json.Decode.map Just int) Nothing
         |> required "name" string
         |> required "grade" string
         |> optional "description" (Json.Decode.map Just string) Nothing
@@ -98,4 +105,25 @@ encodeAscent ascent =
         [ ( "id", Json.Encode.int ascent.id )
         , ( "routeId", Json.Encode.int ascent.routeId )
         , ( "date", Json.Encode.string ascent.date )
+        ]
+
+
+type alias Sector =
+    { id : Int
+    , name : String
+    }
+
+
+sectorDecoder : Json.Decode.Decoder Sector
+sectorDecoder =
+    Json.Decode.succeed Sector
+        |> required "id" int
+        |> required "name" string
+
+
+encodeSector : Sector -> Json.Encode.Value
+encodeSector sector =
+    Json.Encode.object
+        [ ( "id", Json.Encode.int sector.id )
+        , ( "name", Json.Encode.string sector.name )
         ]

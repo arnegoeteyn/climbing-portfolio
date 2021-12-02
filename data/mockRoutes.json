@@ -2,6 +2,7 @@
     "routes": [
         {
             "id": 1,
+            "sectorId": 1,
             "name": "glaspatronenmatch",
             "grade": "8a",
             "description": "heel leuk",
@@ -38,7 +39,12 @@
             "country": "France"
         }
     ],
-    "sectors": [],
+    "sectors": [
+        {
+            "id": 1,
+            "name": "Endorama"
+        }
+    ],
     "ascents": [
         {
             "id": 1,
