@@ -37,6 +37,15 @@
             "grade": "7b",
             "description": "dit is nieuw",
             "ascentIds": []
+        },
+        {
+            "id": 6,
+            "name": "de spiegel",
+            "grade": "7b+",
+            "description": "dit is nieuw",
+            "ascentIds": [
+                3
+            ]
         }
     ],
     "ascents": [
@@ -49,6 +58,11 @@
             "id": 2,
             "routeId": 1,
             "date": "2020/09/01"
+        },
+        {
+            "id": 3,
+            "routeId": 6,
+            "date": "2021-12-22"
         }
     ]
 }
