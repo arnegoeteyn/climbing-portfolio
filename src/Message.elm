@@ -16,6 +16,12 @@ type Route
     | NotFoundRoute
 
 
+type Item
+    = ClimbingRouteItem
+    | AscentItem
+    | SectorItem
+
+
 type Msg
     = Dummy
     | JsonRequested
@@ -31,7 +37,7 @@ type Msg
     | Home HomeMsg
     | ClimbingRoute ClimbingRouteMsg
     | Sector SectorMsg
-    | ItemPage ItemPageMsg Item
+    | ItemPage Item ItemPageMsg
 
 
 type HomeMsg
@@ -42,19 +48,11 @@ type ItemPageMsg
     = OpenForm
     | CloseForm
     | SelectItem Int
-
-
-type Item
-    = ClimbingRouteItem
-    | AscentItem
-    | SectorItem
+    | FormUpdateMessage String String
 
 
 type ClimbingRouteMsg
-    = ClimbingRouteSelected ClimbingRoute
-    | ShowNewRouteForm
-    | CloseNewRouteForm
-    | AddAscentButtonClicked
+    = AddAscentButtonClicked
     | FormName String
     | FormGrade String
     | FormSector String

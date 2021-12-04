@@ -50,7 +50,12 @@ type alias ItemPageModel =
 
 
 type alias ItemPageItemForm =
-    { name : String
-    , grade : String
-    , sectorId : String
+    { criteria : Dict String Criterium
+    , order : List String
+    }
+
+
+type alias Criterium =
+    { value : String
+    , label : String
     }

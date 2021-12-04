@@ -28,19 +28,20 @@ viewRouteForm model =
 
         Just justForm ->
             div []
-                [ viewInput "text" "Name" justForm.name (Message.ClimbingRoute << Message.FormName)
-                , viewInput "text" "Grade" justForm.grade (Message.ClimbingRoute << FormGrade)
-                , select [ onInput (Message.ClimbingRoute << FormSector) ] <|
+                [ -- viewInput "text" "Name" justForm.name (Message.ClimbingRoute << Message.FormName)
+                  --   viewInput "text" "Grade" justForm.grade (Message.ClimbingRoute << FormGrade)
+                  select [ onInput (Message.ClimbingRoute << FormSector) ] <|
                     option [ value "" ] [ text "" ]
                         :: (Dict.values model.sectors |> List.map (\sector -> option [ value <| String.fromInt sector.id ] [ text sector.name ]))
                 ]
 
 
-viewClimbingRoute : ClimbingRoute -> Model -> Html Msg
-viewClimbingRoute route _ =
-    li
-        [ onClick <| Message.ClimbingRoute <| Message.ClimbingRouteSelected route ]
-        [ text <| route.name ++ " " ++ route.grade ]
+
+-- viewClimbingRoute : ClimbingRoute -> Model -> Html Msg
+-- viewClimbingRoute route _ =
+--     li
+--         [ onClick <| Message.ClimbingRoute <| Message.ClimbingRouteSelected route ]
+--         [ text <| route.name ++ " " ++ route.grade ]
 
 
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem

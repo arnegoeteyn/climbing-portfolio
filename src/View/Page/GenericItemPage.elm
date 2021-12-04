@@ -1,13 +1,14 @@
 module View.Page.GenericItemPage exposing (..)
 
-import Data exposing (ClimbingRoute, ItemPageItem, Sector)
+import Data exposing (ItemPageItem)
 import Dict exposing (Dict(..))
 import Html.Styled exposing (Html, button, div, li, text, ul)
 import Html.Styled.Events exposing (onClick)
-import Message exposing (ClimbingRouteMsg(..), Item, ItemPageMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
+import Utilities exposing (viewInput)
 
 
 
@@ -31,13 +32,45 @@ import Tailwind.Utilities as Tw
 --         ]
 
 
+viewItemForm : ItemPageModel -> Model -> Html Msg
+viewItemForm itemPageModel model =
+    let
+        viewCriterium criteria key =
+            let
+                maybeCriterium =
+                    Dict.get key criteria
+            in
+            case maybeCriterium of
+                Nothing ->
+                    div [] []
+
+                Just criterium ->
+                    viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage key value))
+    in
+    case itemPageModel.form of
+        Nothing ->
+            text ""
+
+        Just justForm ->
+            div [] <| List.map (viewCriterium justForm.criteria) justForm.order
+
+
+
+-- div [] <| Dict.foldl viewCriterium [] justForm.criteria.criteria
+-- [ viewInput "text" "Name" justForm.name (Message.ClimbingRoute << Message.FormName)
+-- , viewInput "text" "Grade" justForm.grade (Message.ClimbingRoute << FormGrade)
+-- , select [ onInput (Message.ClimbingRoute << FormSector) ] <|
+--     option [ value "" ] [ text "" ]
+--         :: (Dict.values model.sectors |> List.map (\sector -> option [ value <| String.fromInt sector.id ] [ text sector.name ]))
+-- ]
+
+
 viewItemPage : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
 viewItemPage items itemPageModel model =
     div []
         [ viewAddItemButton itemPageModel
             model
-
-        -- , config.viewForm model
+        , viewItemForm itemPageModel model
         , div
             [ css [ Tw.grid, Tw.grid_cols_2 ] ]
             [ viewItemList items itemPageModel model
@@ -48,21 +81,14 @@ viewItemPage items itemPageModel model =
         ]
 
 
-type alias AddItemButtonConfiguration =
-    { addMessage : Msg
-    , closeMessage : Msg
-    , saveMessage : Msg
-    }
-
-
 viewAddItemButton : ItemPageModel -> Model -> Html Msg
 viewAddItemButton itemPageModel model =
     let
         addButton =
-            button [ onClick (ItemPage OpenForm itemPageModel.itemType) ] [ text "New" ]
+            button [ onClick (ItemPage itemPageModel.itemType OpenForm) ] [ text "New" ]
 
         closeButton =
-            button [ onClick (ItemPage CloseForm itemPageModel.itemType) ] [ text "Close" ]
+            button [ onClick (ItemPage itemPageModel.itemType CloseForm) ] [ text "Close" ]
 
         saveButton =
             button [] [ text "Save" ]
@@ -81,7 +107,7 @@ viewAddItemButton itemPageModel model =
 viewItemList : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
 viewItemList items itemPageModel model =
     ul [] <|
-        List.map (\item -> li [ onClick <| ItemPage (SelectItem item.id) itemPageModel.itemType ] [ text item.identifier ]) <|
+        List.map (\item -> li [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] [ text item.identifier ]) <|
             Dict.values items
 
 

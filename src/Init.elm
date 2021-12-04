@@ -3,10 +3,10 @@ module Init exposing (..)
 import Browser.Navigation exposing (Key)
 import Data exposing (jsonFileDecoder)
 import DatePicker
-import Dict
+import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Item(..), Msg, Route(..))
-import Model exposing (ClimbingRoutesModel, ItemPageItemForm, ItemPageModel, Model, SectorsModel)
+import Model exposing (ClimbingRoutesModel, Criterium, ItemPageItemForm, ItemPageModel, Model, SectorsModel)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
@@ -78,9 +78,19 @@ routesModel =
 
 initItemPageItemForm : ItemPageItemForm
 initItemPageItemForm =
-    { name = ""
-    , grade = ""
-    , sectorId = ""
+    { criteria = Dict.empty
+    , order = []
+    }
+
+
+climbingRouteForm : ItemPageItemForm
+climbingRouteForm =
+    { criteria =
+        Dict.fromList
+            [ ( "name", { value = "", label = "name" } )
+            , ( "grade", { value = "", label = "grade" } )
+            ]
+    , order = [ "name", "grade" ]
     }
 
 

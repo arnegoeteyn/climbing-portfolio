@@ -82,10 +82,12 @@ update msg model =
                 Just form ->
                     let
                         maybeSector =
-                            Dict.get (Maybe.withDefault 0 <| String.toInt form.sectorId) model.sectors
+                            -- Dict.get (Maybe.withDefault 0 <| String.toInt form.sectorId) model.sectors
+                            Dict.get (Maybe.withDefault 0 <| String.toInt "1") model.sectors
 
                         newClimbingRoute =
-                            { name = form.name, sectorId = String.toInt form.sectorId, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
+                            -- { name = form.name, sectorId = String.toInt form.sectorId, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
+                            { name = "", sectorId = String.toInt "1", grade = "", description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
 
                         newRouteIds =
                             newClimbingRoute.id
@@ -146,7 +148,7 @@ update msg model =
         --                 |> (\c -> { c | datePicker = newDatePicker })
         --     in
         --     ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
-        ItemPage itemPageMsg item ->
+        ItemPage item itemPageMsg ->
             Update.ItemPage.update itemPageMsg item model
 
         _ ->
