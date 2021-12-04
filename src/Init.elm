@@ -80,7 +80,8 @@ climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria =
         Dict.fromList
-            [ ( "name", { value = "", label = "name" } )
+            [ ( "_parentId", { value = "", label = "_parentId" } )
+            , ( "name", { value = "", label = "name" } )
             , ( "grade", { value = "", label = "grade" } )
             ]
     , order = [ "name", "grade" ]
@@ -98,8 +99,11 @@ ascentForm =
 
 sectorForm : ItemPageItemForm
 sectorForm =
-    { criteria = Dict.empty
-    , order = []
+    { criteria =
+        Dict.fromList
+            [ ( "name", { value = "", label = "name" } )
+            ]
+    , order = [ "name" ]
     , parent = Nothing
     }
 

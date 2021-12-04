@@ -10,11 +10,11 @@ import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ClimbingRouteMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
 import Model exposing (AppState(..), ItemPageItemForm, Model)
 import Task
 import Update.ClimbingRoute exposing (updateClimbingRoute)
-import Update.ItemPage
+import Update.ItemPage exposing (getModelFromItem)
 import Url
 import Utilities exposing (newId)
 
@@ -77,14 +77,31 @@ update msg model =
         Home homeMsg ->
             ( model, Cmd.none )
 
-        SaveRouteRequested ->
-            case model.climbingRoutesModel.form of
+        SaveItemRequested item ->
+            let
+                itemPageModel =
+                    getModelFromItem item model
+            in
+            case itemPageModel.form of
                 Just form ->
                     let
-                        ( newClimbingRoute, modifiedSectors ) =
-                            climbingRouteFromForm model form
+                        newModel =
+                            case item of
+                                ClimbingRouteItem ->
+                                    let
+                                        ( newClimbingRoute, modifiedSectors ) =
+                                            climbingRouteFromForm model form
+                                    in
+                                    { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
+
+                                _ ->
+                                    let
+                                        newSector =
+                                            sectorFromForm model form
+                                    in
+                                    { model | sectors = Dict.insert newSector.id newSector model.sectors }
                     in
-                    ( { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }, Cmd.none )
+                    ( newModel, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -149,7 +166,7 @@ climbingRouteFromForm model form =
             newId model.climbingRoutes
 
         maybeSector =
-            Just "1"
+            getCriteriumValueFromForm "_parentId" form
                 |> Maybe.andThen String.toInt
                 |> Maybe.andThen (\id -> Dict.get id model.sectors)
 
@@ -181,3 +198,18 @@ climbingRouteFromForm model form =
       }
     , modifiedSectors
     )
+
+
+sectorFromForm : Model -> ItemPageItemForm -> Data.Sector
+sectorFromForm model form =
+    let
+        newSectorId =
+            newId model.sectors
+
+        maybeName =
+            getCriteriumValueFromForm "name" form
+    in
+    { id = newSectorId
+    , name = Maybe.withDefault "" maybeName
+    , routeIds = Nothing
+    }

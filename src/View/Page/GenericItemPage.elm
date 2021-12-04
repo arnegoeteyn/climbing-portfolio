@@ -4,7 +4,7 @@ import Data exposing (ItemPageItem)
 import Dict exposing (Dict(..))
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (value)
-import Html.Styled.Events exposing (onClick)
+import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
@@ -54,7 +54,7 @@ viewItemForm itemPageModel model =
                 |> Maybe.andThen .parent
                 |> Maybe.map
                     (\parentItem ->
-                        select [] <|
+                        select [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage "_parentId" value)) ] <|
                             option [ value "" ] [ text "" ]
                                 :: (getDataFromItem parentItem model
                                         |> Dict.values
@@ -109,7 +109,7 @@ viewAddItemButton itemPageModel model =
             button [ onClick (ItemPage itemPageModel.itemType CloseForm) ] [ text "Close" ]
 
         saveButton =
-            button [ onClick SaveRouteRequested ] [ text "Save" ]
+            button [ onClick (SaveItemRequested itemPageModel.itemType) ] [ text "Save" ]
     in
     case itemPageModel.form of
         Nothing ->

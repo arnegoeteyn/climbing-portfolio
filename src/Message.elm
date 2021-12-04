@@ -28,7 +28,7 @@ type Msg
     | JsonSelected File
     | JsonLoaded String
     | ExportRequested
-    | SaveRouteRequested
+    | SaveItemRequested Item
     | ToDatePicker DatePicker.Msg
       -- router
     | ClickedLink Browser.UrlRequest

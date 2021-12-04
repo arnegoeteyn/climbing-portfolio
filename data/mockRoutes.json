@@ -42,7 +42,10 @@
     "sectors": [
         {
             "id": 1,
-            "name": "Endorama"
+            "name": "Endorama",
+            "routeIds": [
+                1
+            ]
         }
     ],
     "ascents": [
