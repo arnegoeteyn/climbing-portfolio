@@ -53,9 +53,6 @@ type ItemPageMsg
 
 type ClimbingRouteMsg
     = AddAscentButtonClicked
-    | FormName String
-    | FormGrade String
-    | FormSector String
 
 
 type SectorMsg
