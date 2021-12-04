@@ -1,9 +1,5 @@
 module Update.ClimbingRoute exposing (..)
 
-import Date
-import DatePicker
-import Dict
-import Init exposing (initClimbingRouteForm)
 import Message exposing (ClimbingRouteMsg, Msg)
 import Model exposing (Model)
 import Utilities exposing (newId)
@@ -18,11 +14,13 @@ updateClimbingRoute msg model =
         ( updatedClimbingRouteModel, cmdMsg ) =
             case msg of
                 Message.ClimbingRouteSelected route ->
-                    ( { climbingRouteModel | selectedRoute = Just route }, Cmd.none )
+                    -- ( { climbingRouteModel | selectedRoute = Just route }, Cmd.none )
+                    ( climbingRouteModel, Cmd.none )
 
                 Message.AddAscentButtonClicked ->
-                    ( { climbingRouteModel | showNewAscentDate = not climbingRouteModel.showNewAscentDate }, Cmd.none )
+                    ( climbingRouteModel, Cmd.none )
 
+                -- ( { climbingRouteModel | showNewAscentDate = not climbingRouteModel.showNewAscentDate }, Cmd.none )
                 Message.FormName name ->
                     let
                         formUpdate form =
@@ -41,7 +39,8 @@ updateClimbingRoute msg model =
                     ( { climbingRouteModel | form = newForm }, Cmd.none )
 
                 Message.ShowNewRouteForm ->
-                    ( { climbingRouteModel | form = Just initClimbingRouteForm }, Cmd.none )
+                    -- ( { climbingRouteModel | form = Just initClimbingRouteForm }, Cmd.none )
+                    ( climbingRouteModel, Cmd.none )
 
                 Message.CloseNewRouteForm ->
                     ( { climbingRouteModel | form = Nothing }, Cmd.none )

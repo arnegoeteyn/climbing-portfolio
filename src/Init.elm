@@ -5,8 +5,8 @@ import Data exposing (jsonFileDecoder)
 import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
-import Message exposing (ClimbingRouteMsg(..), Msg, Route(..))
-import Model exposing (ClimbingRouteForm, ClimbingRoutesModel, Model, SectorsModel)
+import Message exposing (ClimbingRouteMsg(..), Item(..), Msg, Route(..))
+import Model exposing (ClimbingRoutesModel, ItemPageItemForm, ItemPageModel, Model, SectorsModel)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
@@ -15,10 +15,13 @@ init : String -> Url -> Key -> ( Model, Cmd Msg )
 init storageCache url key =
     let
         ( climbingRoutesModel, routesCmd ) =
-            routesModel
+            itemPageModel ClimbingRouteItem
 
-        ( aSectorsModel, sectorsCmd ) =
-            sectorsModel
+        ( sectorsModel, sectorsCmd ) =
+            itemPageModel SectorItem
+
+        ( ascentsModel, ascentsCmd ) =
+            itemPageModel AscentItem
 
         decodedStorage =
             decodeString jsonFileDecoder storageCache
@@ -40,9 +43,20 @@ init storageCache url key =
       , ascents = jsonFile.ascents
       , sectors = jsonFile.sectors
       , climbingRoutesModel = climbingRoutesModel
-      , sectorsModel = aSectorsModel
+      , sectorsModel = sectorsModel
+      , ascentsModel = ascentsModel
       }
-    , Cmd.batch [ routesCmd ]
+    , Cmd.batch [ routesCmd, sectorsCmd ]
+    )
+
+
+itemPageModel : Item -> ( ItemPageModel, Cmd Msg )
+itemPageModel t =
+    ( { form = Nothing
+      , itemType = t
+      , selectedItemId = Nothing
+      }
+    , Cmd.none
     )
 
 
@@ -62,13 +76,8 @@ routesModel =
     )
 
 
-sectorsModel : ( SectorsModel, Cmd Msg )
-sectorsModel =
-    ( { selectedSector = Nothing }, Cmd.none )
-
-
-initClimbingRouteForm : ClimbingRouteForm
-initClimbingRouteForm =
+initItemPageItemForm : ItemPageItemForm
+initItemPageItemForm =
     { name = ""
     , grade = ""
     , sectorId = ""

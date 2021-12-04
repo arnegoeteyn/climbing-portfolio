@@ -3,8 +3,6 @@ module Update exposing (update)
 import Browser
 import Browser.Navigation as Nav
 import Data exposing (encodedJsonFile, jsonFileDecoder)
-import Date
-import DatePicker
 import Dict
 import File
 import File.Download
@@ -16,6 +14,7 @@ import Message exposing (ClimbingRouteMsg(..), Msg(..))
 import Model exposing (AppState(..), Model)
 import Task
 import Update.ClimbingRoute exposing (updateClimbingRoute)
+import Update.ItemPage
 import Url
 import Utilities exposing (newId)
 
@@ -50,7 +49,14 @@ update msg model =
             in
             case result of
                 Ok file ->
-                    ( { model | appState = Ready, climbingRoutes = file.climbingRoutes, ascents = file.ascents, sectors = file.sectors }, Cmd.none )
+                    ( { model
+                        | appState = Ready
+                        , climbingRoutes = file.climbingRoutes
+                        , ascents = file.ascents
+                        , sectors = file.sectors
+                      }
+                    , Cmd.none
+                    )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -99,56 +105,49 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        ToDatePicker subMsg ->
-            let
-                climbingRoutesModel =
-                    model.climbingRoutesModel
-
-                ( newDatePicker, event ) =
-                    DatePicker.update DatePicker.defaultSettings subMsg climbingRoutesModel.datePicker
-
-                maybeResult =
-                    Maybe.andThen
-                        (\selectedRoute ->
-                            case event of
-                                DatePicker.Picked date ->
-                                    let
-                                        newAscentId =
-                                            newId model.ascents
-
-                                        modifiedRoute =
-                                            { selectedRoute | ascentIds = Just <| newAscentId :: Maybe.withDefault [] selectedRoute.ascentIds }
-
-                                        newRoutes =
-                                            Dict.insert selectedRoute.id modifiedRoute model.climbingRoutes
-
-                                        newAscent =
-                                            { id = newAscentId, routeId = selectedRoute.id, date = Date.toIsoString date }
-
-                                        newAscents =
-                                            Dict.insert newAscentId newAscent model.ascents
-                                    in
-                                    Just
-                                        { newRoutes = newRoutes
-                                        , newAscents = newAscents
-                                        , newClimbingRoutesModel = { climbingRoutesModel | selectedRoute = Just modifiedRoute, date = Nothing }
-                                        }
-
-                                _ ->
-                                    Nothing
-                        )
-                        model.climbingRoutesModel.selectedRoute
-
-                newModel =
-                    Maybe.andThen (\result -> Just { model | ascents = result.newAscents, climbingRoutes = result.newRoutes }) maybeResult
-                        |> Maybe.withDefault model
-
-                newClimbingRoutesModel =
-                    Maybe.andThen (Just << .newClimbingRoutesModel) maybeResult
-                        |> Maybe.withDefault climbingRoutesModel
-                        |> (\c -> { c | datePicker = newDatePicker })
-            in
-            ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
+        -- ToDatePicker subMsg ->
+        --     let
+        --         climbingRoutesModel =
+        --             model.climbingRoutesModel
+        --         ( newDatePicker, event ) =
+        --             DatePicker.update DatePicker.defaultSettings subMsg climbingRoutesModel.datePicker
+        --         maybeResult =
+        --             Maybe.andThen
+        --                 (\selectedRoute ->
+        --                     case event of
+        --                         DatePicker.Picked date ->
+        --                             let
+        --                                 newAscentId =
+        --                                     newId model.ascents
+        --                                 modifiedRoute =
+        --                                     { selectedRoute | ascentIds = Just <| newAscentId :: Maybe.withDefault [] selectedRoute.ascentIds }
+        --                                 newRoutes =
+        --                                     Dict.insert selectedRoute.id modifiedRoute model.climbingRoutes
+        --                                 newAscent =
+        --                                     { id = newAscentId, routeId = selectedRoute.id, date = Date.toIsoString date }
+        --                                 newAscents =
+        --                                     Dict.insert newAscentId newAscent model.ascents
+        --                             in
+        --                             Just
+        --                                 { newRoutes = newRoutes
+        --                                 , newAscents = newAscents
+        --                                 , newClimbingRoutesModel = { climbingRoutesModel | selectedRoute = Just modifiedRoute, date = Nothing }
+        --                                 }
+        --                         _ ->
+        --                             Nothing
+        --                 )
+        --                 model.climbingRoutesModel.selectedRoute
+        --         newModel =
+        --             Maybe.andThen (\result -> Just { model | ascents = result.newAscents, climbingRoutes = result.newRoutes }) maybeResult
+        --                 |> Maybe.withDefault model
+        --         newClimbingRoutesModel =
+        --             Maybe.andThen (Just << .newClimbingRoutesModel) maybeResult
+        --                 |> Maybe.withDefault climbingRoutesModel
+        --                 |> (\c -> { c | datePicker = newDatePicker })
+        --     in
+        --     ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
+        ItemPage itemPageMsg item ->
+            Update.ItemPage.update itemPageMsg item model
 
         _ ->
             ( model, Cmd.none )

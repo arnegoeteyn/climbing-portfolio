@@ -1,16 +1,10 @@
 module Message exposing (..)
 
 import Browser
-import Data exposing (Ascent, ClimbingRoute, Sector)
+import Data exposing (ClimbingRoute, ItemPageItem, Sector)
 import DatePicker
 import File exposing (File)
 import Url exposing (Url)
-
-
-type Item a
-    = ClimbingRouteItem ClimbingRoute
-    | AscentItem Ascent
-    | SectorItem Sector
 
 
 type Route
@@ -37,23 +31,23 @@ type Msg
     | Home HomeMsg
     | ClimbingRoute ClimbingRouteMsg
     | Sector SectorMsg
-    | DataUpdate DataUpdateMsg
+    | ItemPage ItemPageMsg Item
 
 
 type HomeMsg
     = None
 
 
-type DataUpdateMsg
-    = CreateFromForm CreateFromFromMsg
-    | OpenForm
+type ItemPageMsg
+    = OpenForm
     | CloseForm
+    | SelectItem Int
 
 
-type CreateFromFromMsg
-    = ClimbingRouteForm
-    | AscentForm
-    | SectorForm
+type Item
+    = ClimbingRouteItem
+    | AscentItem
+    | SectorItem
 
 
 type ClimbingRouteMsg

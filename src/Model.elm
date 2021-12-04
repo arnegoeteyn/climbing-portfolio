@@ -5,7 +5,7 @@ import Data exposing (Ascent, ClimbingRoute, Sector)
 import Date exposing (Date)
 import DatePicker
 import Dict exposing (Dict)
-import Message exposing (Route)
+import Message exposing (Item, Route)
 import Url exposing (Url)
 
 
@@ -17,8 +17,9 @@ type alias Model =
     , climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
-    , climbingRoutesModel : ClimbingRoutesModel
-    , sectorsModel : SectorsModel
+    , climbingRoutesModel : ItemPageModel
+    , sectorsModel : ItemPageModel
+    , ascentsModel : ItemPageModel
     }
 
 
@@ -29,7 +30,7 @@ type AppState
 
 type alias ClimbingRoutesModel =
     { selectedRoute : Maybe ClimbingRoute -- todo to INT
-    , form : Maybe ClimbingRouteForm
+    , form : Maybe ItemPageItemForm
     , showNewAscentDate : Bool
     , datePicker : DatePicker.DatePicker
     , date : Maybe Date
@@ -41,7 +42,14 @@ type alias SectorsModel =
     }
 
 
-type alias ClimbingRouteForm =
+type alias ItemPageModel =
+    { itemType : Item
+    , form : Maybe ItemPageItemForm
+    , selectedItemId : Maybe Int
+    }
+
+
+type alias ItemPageItemForm =
     { name : String
     , grade : String
     , sectorId : String

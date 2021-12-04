@@ -1,6 +1,7 @@
-module View.Page.Sectors exposing (..)
+module View.Page.Sectors exposing (view)
 
-import Data exposing (Sector)
+import Data exposing (ItemPageItem, Sector)
+import Dict
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (css, value)
 import Html.Styled.Events exposing (onClick, onInput)
@@ -11,29 +12,32 @@ import View.Page.GenericItemPage exposing (viewItemPage)
 import View.Widget.GenericItemCard exposing (viewClimbingRouteCard)
 
 
-viewSectors : Model -> Html Msg
-viewSectors model =
-    let
-        buttonConfig =
-            { addMessage = Message.Sector <| ShowNewSectorForm
-            , closeMessage = Message.Sector <| CloseNewSectorForm
-            , saveMessage = Dummy
-            }
-
-        itemListConfiguration =
-            { viewItem = viewSector, items = model.sectors }
-    in
+view : Model -> Html Msg
+view model =
     viewItemPage
-        { getSelectedItem = model.sectorsModel.selectedSector
-        , viewItemCard = \m -> \a -> text "Abc"
-        , viewForm = \a -> text "Form"
-        , itemListConfiguration = itemListConfiguration
-        , buttonConfiguration = buttonConfig
-        }
+        (Dict.map toSectorItem model.sectors)
+        model.sectorsModel
         model
 
 
 
+-- let
+--     buttonConfig =
+--         { addMessage = Message.Sector <| ShowNewSectorForm
+--         , closeMessage = Message.Sector <| CloseNewSectorForm
+--         , saveMessage = Dummy
+--         }
+--     itemListConfiguration =
+--         { viewItem = viewSector, items = model.sectors }
+-- in
+-- viewItemPage
+--     { getSelectedItem = model.sectorsModel.selectedSector
+--     , viewItemCard = \m -> \a -> text "Abc"
+--     , viewForm = \a -> text "Form"
+--     , itemListConfiguration = itemListConfiguration
+--     , buttonConfiguration = buttonConfig
+--     }
+--     model
 -- viewRouteForm : Model -> Html Msg
 -- viewRouteForm model =
 --     case model.climbingRoutesModel.form of
@@ -47,10 +51,16 @@ viewSectors model =
 --                     option [ value "" ] [ text "" ]
 --                         :: (Dict.values model.sectors |> List.map (\sector -> option [ value <| String.fromInt sector.id ] [ text sector.name ]))
 --                 ]
+-- viewSector : Sector -> Model -> Html Msg
+-- viewSector sector _ =
+--     li
+--         [ onClick <| Message.Sector <| Message.SectorSelected sector ]
+--         [ text <| sector.name ]
 
 
-viewSector : Sector -> Model -> Html Msg
-viewSector sector _ =
-    li
-        [ onClick <| Message.Sector <| Message.SectorSelected sector ]
-        [ text <| sector.name ]
+toSectorItem : Int -> Sector -> ItemPageItem
+toSectorItem _ sector =
+    { cardHeader = sector.name
+    , identifier = sector.name
+    , id = sector.id
+    }

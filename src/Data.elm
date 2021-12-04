@@ -7,6 +7,13 @@ import Json.Encode
 import Utilities exposing (encodeNullable)
 
 
+type alias ItemPageItem =
+    { cardHeader : String
+    , identifier : String
+    , id : Int
+    }
+
+
 type alias JsonFile =
     { climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent

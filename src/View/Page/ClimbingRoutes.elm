@@ -1,11 +1,11 @@
 module View.Page.ClimbingRoutes exposing (..)
 
-import Data exposing (ClimbingRoute)
+import Data exposing (ClimbingRoute, ItemPageItem)
 import Dict
 import Html.Styled exposing (Html, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Message exposing (ClimbingRouteMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
 import Model exposing (Model)
 import Utilities exposing (viewInput)
 import View.Page.GenericItemPage exposing (viewItemPage)
@@ -14,23 +14,9 @@ import View.Widget.GenericItemCard exposing (viewClimbingRouteCard)
 
 viewClimbingRoutes : Model -> Html Msg
 viewClimbingRoutes model =
-    let
-        buttonConfig =
-            { addMessage = Message.ClimbingRoute <| ShowNewRouteForm
-            , closeMessage = Message.ClimbingRoute <| CloseNewRouteForm
-            , saveMessage = SaveRouteRequested
-            }
-
-        itemListConfiguration =
-            { viewItem = viewClimbingRoute, items = model.climbingRoutes }
-    in
     viewItemPage
-        { getSelectedItem = model.climbingRoutesModel.selectedRoute
-        , viewItemCard = viewClimbingRouteCard
-        , viewForm = viewRouteForm
-        , itemListConfiguration = itemListConfiguration
-        , buttonConfiguration = buttonConfig
-        }
+        (Dict.map toClimbingRouteItem model.climbingRoutes)
+        model.climbingRoutesModel
         model
 
 
@@ -55,3 +41,13 @@ viewClimbingRoute route _ =
     li
         [ onClick <| Message.ClimbingRoute <| Message.ClimbingRouteSelected route ]
         [ text <| route.name ++ " " ++ route.grade ]
+
+
+toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
+toClimbingRouteItem _ climbingRoute =
+    { cardHeader =
+        List.foldl (++) "" <|
+            [ climbingRoute.name, "[", climbingRoute.grade, "]" ]
+    , identifier = climbingRoute.name
+    , id = climbingRoute.id
+    }

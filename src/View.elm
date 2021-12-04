@@ -9,9 +9,10 @@ import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
 import Utilities exposing (filterList)
+import View.Page.Ascents
 import View.Page.ClimbingRoutes exposing (viewClimbingRoutes)
 import View.Page.Home exposing (viewHome)
-import View.Page.Sectors exposing (viewSectors)
+import View.Page.Sectors
 
 
 view : Model -> List (Html.Html Msg)
@@ -85,10 +86,10 @@ viewPage model =
                 viewClimbingRoutes model
 
             AscentsRoute ->
-                text "routes"
+                View.Page.Ascents.view model
 
             SectorsRoute ->
-                viewSectors model
+                View.Page.Sectors.view model
 
             AreasRoute ->
                 text "areas"
