@@ -6,7 +6,7 @@ import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Msg, Route(..))
-import Model exposing (ClimbingRouteForm, ClimbingRoutesModel, Model)
+import Model exposing (ClimbingRouteForm, ClimbingRoutesModel, Model, SectorsModel)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
@@ -16,6 +16,9 @@ init storageCache url key =
     let
         ( climbingRoutesModel, routesCmd ) =
             routesModel
+
+        ( aSectorsModel, sectorsCmd ) =
+            sectorsModel
 
         decodedStorage =
             decodeString jsonFileDecoder storageCache
@@ -37,8 +40,9 @@ init storageCache url key =
       , ascents = jsonFile.ascents
       , sectors = jsonFile.sectors
       , climbingRoutesModel = climbingRoutesModel
+      , sectorsModel = aSectorsModel
       }
-    , routesCmd
+    , Cmd.batch [ routesCmd ]
     )
 
 
@@ -56,6 +60,11 @@ routesModel =
       }
     , Cmd.map Message.ToDatePicker datePickerFx
     )
+
+
+sectorsModel : ( SectorsModel, Cmd Msg )
+sectorsModel =
+    ( { selectedSector = Nothing }, Cmd.none )
 
 
 initClimbingRouteForm : ClimbingRouteForm

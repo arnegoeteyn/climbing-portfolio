@@ -23,6 +23,9 @@ import Utilities exposing (newId)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Dummy ->
+            ( model, Cmd.none )
+
         ChangedUrl url ->
             ( { model | route = parseUrl url }, Cmd.none )
 
@@ -61,6 +64,9 @@ update msg model =
 
         ClimbingRoute climbingRouteMsg ->
             updateClimbingRoute climbingRouteMsg model
+
+        Sector sectorMsg ->
+            ( model, Cmd.none )
 
         Home homeMsg ->
             ( model, Cmd.none )
@@ -143,3 +149,6 @@ update msg model =
                         |> (\c -> { c | datePicker = newDatePicker })
             in
             ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )

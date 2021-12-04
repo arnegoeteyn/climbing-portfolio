@@ -18,6 +18,7 @@ type alias Model =
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
     , climbingRoutesModel : ClimbingRoutesModel
+    , sectorsModel : SectorsModel
     }
 
 
@@ -32,6 +33,11 @@ type alias ClimbingRoutesModel =
     , showNewAscentDate : Bool
     , datePicker : DatePicker.DatePicker
     , date : Maybe Date
+    }
+
+
+type alias SectorsModel =
+    { selectedSector : Maybe Sector -- todo to INT
     }
 
 

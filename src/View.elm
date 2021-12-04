@@ -11,6 +11,7 @@ import Tailwind.Utilities as Tw
 import Utilities exposing (filterList)
 import View.Page.ClimbingRoutes exposing (viewClimbingRoutes)
 import View.Page.Home exposing (viewHome)
+import View.Page.Sectors exposing (viewSectors)
 
 
 view : Model -> List (Html.Html Msg)
@@ -80,7 +81,6 @@ viewPage model =
             HomeRoute ->
                 viewHome model
 
-            -- text "home"
             RoutesRoute ->
                 viewClimbingRoutes model
 
@@ -88,7 +88,7 @@ viewPage model =
                 text "routes"
 
             SectorsRoute ->
-                text "sectors"
+                viewSectors model
 
             AreasRoute ->
                 text "areas"
