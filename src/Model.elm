@@ -52,6 +52,7 @@ type alias ItemPageModel =
 type alias ItemPageItemForm =
     { criteria : Dict String Criterium
     , order : List String
+    , parent : Maybe Item
     }
 
 

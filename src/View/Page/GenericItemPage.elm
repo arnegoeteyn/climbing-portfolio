@@ -2,13 +2,15 @@ module View.Page.GenericItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
 import Dict exposing (Dict(..))
-import Html.Styled exposing (Html, button, div, li, text, ul)
+import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
+import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick)
 import Message exposing (ClimbingRouteMsg(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
+import Utilities.ItemPageUtilities exposing (getDataFromItem)
 
 
 
@@ -46,13 +48,29 @@ viewItemForm itemPageModel model =
 
                 Just criterium ->
                     viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage key value))
-    in
-    case itemPageModel.form of
-        Nothing ->
-            text ""
 
-        Just justForm ->
-            div [] <| List.map (viewCriterium justForm.criteria) justForm.order
+        maybeParentCriterium =
+            itemPageModel.form
+                |> Maybe.andThen .parent
+                |> Maybe.map
+                    (\parentItem ->
+                        select [] <|
+                            option [ value "" ] [ text "" ]
+                                :: (getDataFromItem parentItem model
+                                        |> Dict.values
+                                        |> List.map (\item -> option [ value <| String.fromInt item.id ] [ text item.identifier ])
+                                   )
+                    )
+    in
+    div [] <|
+        case itemPageModel.form of
+            Nothing ->
+                [ text "" ]
+
+            Just justForm ->
+                [ div [] <| List.map (viewCriterium justForm.criteria) justForm.order
+                , div [] [ Maybe.withDefault (text "") maybeParentCriterium ]
+                ]
 
 
 
@@ -91,7 +109,7 @@ viewAddItemButton itemPageModel model =
             button [ onClick (ItemPage itemPageModel.itemType CloseForm) ] [ text "Close" ]
 
         saveButton =
-            button [] [ text "Save" ]
+            button [ onClick SaveRouteRequested ] [ text "Save" ]
     in
     case itemPageModel.form of
         Nothing ->

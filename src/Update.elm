@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (encodedJsonFile, jsonFileDecoder)
+import Data exposing (climbingRouteFromParameters, encodedJsonFile, jsonFileDecoder)
 import Dict
 import File
 import File.Download
@@ -11,7 +11,7 @@ import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Msg(..))
-import Model exposing (AppState(..), Model)
+import Model exposing (AppState(..), ItemPageItemForm, Model)
 import Task
 import Update.ClimbingRoute exposing (updateClimbingRoute)
 import Update.ItemPage
@@ -81,26 +81,8 @@ update msg model =
             case model.climbingRoutesModel.form of
                 Just form ->
                     let
-                        maybeSector =
-                            -- Dict.get (Maybe.withDefault 0 <| String.toInt form.sectorId) model.sectors
-                            Dict.get (Maybe.withDefault 0 <| String.toInt "1") model.sectors
-
-                        newClimbingRoute =
-                            -- { name = form.name, sectorId = String.toInt form.sectorId, grade = form.grade, description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
-                            { name = "", sectorId = String.toInt "1", grade = "", description = Just "dit is nieuw", id = newId model.climbingRoutes, ascentIds = Just [] }
-
-                        newRouteIds =
-                            newClimbingRoute.id
-                                :: (maybeSector
-                                        |> Maybe.andThen .routeIds
-                                        |> Maybe.withDefault []
-                                   )
-
-                        modifiedSectors =
-                            maybeSector
-                                |> Maybe.map (\sector -> { sector | routeIds = Just newRouteIds })
-                                |> Maybe.map (\sector -> Dict.insert sector.id sector model.sectors)
-                                |> Maybe.withDefault model.sectors
+                        ( newClimbingRoute, modifiedSectors ) =
+                            climbingRouteFromForm model form
                     in
                     ( { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }, Cmd.none )
 
@@ -153,3 +135,49 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
+
+
+getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
+getCriteriumValueFromForm key form =
+    Dict.get key form.criteria |> Maybe.map .value
+
+
+climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
+climbingRouteFromForm model form =
+    let
+        newRouteId =
+            newId model.climbingRoutes
+
+        maybeSector =
+            Just "1"
+                |> Maybe.andThen String.toInt
+                |> Maybe.andThen (\id -> Dict.get id model.sectors)
+
+        maybeName =
+            getCriteriumValueFromForm "name" form
+
+        maybeGrade =
+            getCriteriumValueFromForm "grade" form
+
+        newRouteIds =
+            newRouteId
+                :: (maybeSector
+                        |> Maybe.andThen .routeIds
+                        |> Maybe.withDefault []
+                   )
+
+        modifiedSectors =
+            maybeSector
+                |> Maybe.map (\sector -> { sector | routeIds = Just newRouteIds })
+                |> Maybe.map (\sector -> Dict.insert sector.id sector model.sectors)
+                |> Maybe.withDefault model.sectors
+    in
+    ( { id = newId model.climbingRoutes
+      , sectorId = Maybe.map .id maybeSector
+      , name = Maybe.withDefault "" maybeName
+      , grade = Maybe.withDefault "" maybeGrade
+      , description = Nothing
+      , ascentIds = Just []
+      }
+    , modifiedSectors
+    )

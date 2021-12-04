@@ -62,6 +62,17 @@ type alias ClimbingRoute =
     }
 
 
+climbingRouteFromParameters : Int -> Maybe Int -> String -> String -> Maybe String -> Maybe (List Int) -> ClimbingRoute
+climbingRouteFromParameters id sectorId name grade description ascentIds =
+    { id = id
+    , sectorId = sectorId
+    , name = name
+    , grade = grade
+    , description = description
+    , ascentIds = ascentIds
+    }
+
+
 climbingRouteDecoder : Json.Decode.Decoder ClimbingRoute
 climbingRouteDecoder =
     Json.Decode.succeed ClimbingRoute

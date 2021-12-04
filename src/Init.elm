@@ -1,7 +1,7 @@
 module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
-import Data exposing (jsonFileDecoder)
+import Data exposing (ClimbingRoute, jsonFileDecoder)
 import DatePicker
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
@@ -76,13 +76,6 @@ routesModel =
     )
 
 
-initItemPageItemForm : ItemPageItemForm
-initItemPageItemForm =
-    { criteria = Dict.empty
-    , order = []
-    }
-
-
 climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria =
@@ -91,6 +84,23 @@ climbingRouteForm =
             , ( "grade", { value = "", label = "grade" } )
             ]
     , order = [ "name", "grade" ]
+    , parent = Just SectorItem
+    }
+
+
+ascentForm : ItemPageItemForm
+ascentForm =
+    { criteria = Dict.empty
+    , order = []
+    , parent = Just ClimbingRouteItem
+    }
+
+
+sectorForm : ItemPageItemForm
+sectorForm =
+    { criteria = Dict.empty
+    , order = []
+    , parent = Nothing
     }
 
 

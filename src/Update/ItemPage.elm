@@ -1,9 +1,9 @@
 module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
-import Init exposing (climbingRouteForm, initItemPageItemForm)
+import Init exposing (ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (Item(..), ItemPageMsg(..), Msg)
-import Model exposing (Criterium, ItemPageModel, Model)
+import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -19,11 +19,17 @@ getModelFromItem item model =
             model.ascentsModel
 
 
-getCriteriaFromItem : Item -> { criteria : Dict String Criterium, order : List String }
+getCriteriaFromItem : Item -> ItemPageItemForm
 getCriteriaFromItem item =
     case item of
-        _ ->
+        ClimbingRouteItem ->
             climbingRouteForm
+
+        AscentItem ->
+            ascentForm
+
+        SectorItem ->
+            sectorForm
 
 
 setItemPageModel : Item -> ItemPageModel -> Model -> Model
