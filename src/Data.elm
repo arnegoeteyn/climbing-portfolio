@@ -20,6 +20,7 @@ type alias JsonFile =
     { climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
+    , areas : Dict Int Area
     }
 
 
@@ -38,11 +39,15 @@ jsonFileDecoder =
 
         decodedSectors =
             generalDecoder sectorDecoder
+
+        decodedAreas =
+            generalDecoder areaDecoder
     in
-    Json.Decode.map3 JsonFile
+    Json.Decode.map4 JsonFile
         (Json.Decode.field "routes" <| decodedRoutes)
         (Json.Decode.field "ascents" <| decodedAscents)
         (Json.Decode.field "sectors" <| decodedSectors)
+        (Json.Decode.field "areas" <| decodedAreas)
 
 
 encodedJsonFile : JsonFile -> Json.Encode.Value
@@ -132,6 +137,7 @@ encodeAscent ascent =
 
 type alias Sector =
     { id : Int
+    , areaId : Maybe Int
     , name : String
     , routeIds : Maybe (List Int)
     }
@@ -141,6 +147,7 @@ sectorDecoder : Json.Decode.Decoder Sector
 sectorDecoder =
     Json.Decode.succeed Sector
         |> required "id" int
+        |> optional "areaId" (Json.Decode.map Just int) Nothing
         |> required "name" string
         |> optional "routeIds" (Json.Decode.map Just (list int)) Nothing
 
@@ -151,4 +158,31 @@ encodeSector sector =
         [ ( "id", Json.Encode.int sector.id )
         , ( "name", Json.Encode.string sector.name )
         , ( "routeIds", encodeNullable (Json.Encode.list Json.Encode.int) sector.routeIds )
+        ]
+
+
+type alias Area =
+    { id : Int
+    , name : String
+    , country : String
+    , sectorIds : Maybe (List Int)
+    }
+
+
+areaDecoder : Json.Decode.Decoder Area
+areaDecoder =
+    Json.Decode.succeed Area
+        |> required "id" int
+        |> required "name" string
+        |> required "country" string
+        |> optional "sectorIds" (Json.Decode.map Just (list int)) Nothing
+
+
+encodeArea : Area -> Json.Encode.Value
+encodeArea area =
+    Json.Encode.object
+        [ ( "id", Json.Encode.int area.id )
+        , ( "name", Json.Encode.string area.name )
+        , ( "country", Json.Encode.string area.country )
+        , ( "routeIds", encodeNullable (Json.Encode.list Json.Encode.int) area.sectorIds )
         ]

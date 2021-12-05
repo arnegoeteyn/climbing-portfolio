@@ -1,8 +1,7 @@
 module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
-import Data exposing (ClimbingRoute, jsonFileDecoder)
-import DatePicker
+import Data exposing (ClimbingRoute, Sector, jsonFileDecoder)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg, Route(..))
@@ -23,11 +22,14 @@ init storageCache url key =
         ( ascentsModel, ascentsCmd ) =
             itemPageModel AscentItem
 
+        ( areasModel, areasCmd ) =
+            itemPageModel AreaItem
+
         decodedStorage =
             decodeString jsonFileDecoder storageCache
 
         jsonFile =
-            Result.withDefault { climbingRoutes = Dict.empty, ascents = Dict.empty, sectors = Dict.empty } <| decodedStorage
+            Result.withDefault { climbingRoutes = Dict.empty, ascents = Dict.empty, sectors = Dict.empty, areas = Dict.empty } <| decodedStorage
     in
     ( { appState =
             case decodedStorage of
@@ -42,11 +44,13 @@ init storageCache url key =
       , climbingRoutes = jsonFile.climbingRoutes
       , ascents = jsonFile.ascents
       , sectors = jsonFile.sectors
+      , areas = jsonFile.areas
       , climbingRoutesModel = climbingRoutesModel
       , sectorsModel = sectorsModel
       , ascentsModel = ascentsModel
+      , areasModel = areasModel
       }
-    , Cmd.batch [ routesCmd, sectorsCmd ]
+    , Cmd.batch [ routesCmd, sectorsCmd, areasCmd, ascentsCmd ]
     )
 
 
@@ -109,8 +113,27 @@ sectorForm =
 
 sectorRelations : ItemRelation
 sectorRelations =
-    { parent = Nothing
+    { parent = Just AreaItem
     , child = Just ClimbingRouteItem
+    }
+
+
+areaForm : ItemPageItemForm
+areaForm =
+    { criteria =
+        Dict.fromList
+            [ ( "name", { value = "", label = "name" } )
+            , ( "country", { value = "", label = "name" } )
+            ]
+    , order = [ "name" ]
+    , parentId = Nothing
+    }
+
+
+areaRelations : ItemRelation
+areaRelations =
+    { parent = Nothing
+    , child = Just SectorItem
     }
 
 
@@ -121,6 +144,7 @@ routeParser =
         , Parser.map RoutesRoute (Parser.s "routes")
         , Parser.map AscentsRoute (Parser.s "ascents")
         , Parser.map SectorsRoute (Parser.s "sectors")
+        , Parser.map AreasRoute (Parser.s "areas")
         ]
 
 

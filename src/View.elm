@@ -9,6 +9,7 @@ import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
 import Utilities exposing (filterList)
+import View.Page.Areas
 import View.Page.Ascents
 import View.Page.ClimbingRoutes exposing (viewClimbingRoutes)
 import View.Page.Home exposing (viewHome)
@@ -41,6 +42,7 @@ viewHeader model =
                 , navLink AscentsRoute { url = "/ascents", caption = "Ascents" }
                 , navLink RoutesRoute { url = "/routes", caption = "Routes" }
                 , navLink SectorsRoute { url = "/sectors", caption = "Sectors" }
+                , navLink AreasRoute { url = "/areas", caption = "Areas" }
                 ]
 
         navAttributes =
@@ -92,7 +94,7 @@ viewPage model =
                 View.Page.Sectors.view model
 
             AreasRoute ->
-                text "areas"
+                View.Page.Areas.view model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

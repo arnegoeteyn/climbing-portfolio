@@ -19,6 +19,7 @@ type Item
     = ClimbingRouteItem
     | AscentItem
     | SectorItem
+    | AreaItem
 
 
 type alias ItemRelation =

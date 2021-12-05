@@ -1,8 +1,8 @@
 module Utilities.ItemPageUtilities exposing (..)
 
-import Data exposing (Ascent, ClimbingRoute, ItemPageItem, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, ItemPageItem, Sector)
 import Dict exposing (Dict)
-import Init exposing (ascentForm, climbingRouteForm, sectorForm)
+import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (Item(..), ItemRelation)
 import Model exposing (ItemPageItemForm, ItemPageModel, Model)
 
@@ -19,6 +19,9 @@ getModelFromItem item model =
         AscentItem ->
             model.ascentsModel
 
+        AreaItem ->
+            model.areasModel
+
 
 getCriteriaFromItem : Item -> ItemPageItemForm
 getCriteriaFromItem item =
@@ -31,6 +34,9 @@ getCriteriaFromItem item =
 
         SectorItem ->
             sectorForm
+
+        AreaItem ->
+            areaForm
 
 
 setItemPageModel : Item -> ItemPageModel -> Model -> Model
@@ -45,6 +51,9 @@ setItemPageModel item itemPageModel model =
         AscentItem ->
             { model | ascentsModel = itemPageModel }
 
+        AreaItem ->
+            { model | areasModel = itemPageModel }
+
 
 getDataFromItem : Item -> Model -> Dict Int ItemPageItem
 getDataFromItem item model =
@@ -58,6 +67,9 @@ getDataFromItem item model =
         SectorItem ->
             Dict.map toSectorItem model.sectors
 
+        AreaItem ->
+            Dict.map toAreaItem model.areas
+
 
 getRelationFromItem : Item -> ItemRelation
 getRelationFromItem item =
@@ -70,6 +82,9 @@ getRelationFromItem item =
 
         SectorItem ->
             Init.sectorRelations
+
+        AreaItem ->
+            Init.areaRelations
 
 
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
@@ -90,6 +105,16 @@ toSectorItem _ sector =
     , identifier = sector.name
     , id = sector.id
     , cardDescription = Nothing
+    , parentId = sector.areaId
+    }
+
+
+toAreaItem : Int -> Area -> ItemPageItem
+toAreaItem _ area =
+    { cardHeader = area.name
+    , identifier = area.name
+    , id = area.id
+    , cardDescription = Just area.country
     , parentId = Nothing
     }
 

@@ -24,7 +24,7 @@ updateWithStorage msg model =
     , Cmd.batch
         [ storeCache
             (encodedJsonFile
-                { climbingRoutes = newModel.climbingRoutes, ascents = newModel.ascents, sectors = newModel.sectors }
+                { climbingRoutes = newModel.climbingRoutes, ascents = newModel.ascents, sectors = newModel.sectors, areas = newModel.areas }
             )
         , cmds
         ]

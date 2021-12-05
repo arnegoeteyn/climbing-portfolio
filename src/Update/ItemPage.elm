@@ -1,35 +1,10 @@
 module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
-import Init exposing (ascentForm, climbingRouteForm, sectorForm)
+import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
-
-
-getModelFromItem : Item -> Model -> ItemPageModel
-getModelFromItem item model =
-    case item of
-        ClimbingRouteItem ->
-            model.climbingRoutesModel
-
-        SectorItem ->
-            model.sectorsModel
-
-        AscentItem ->
-            model.ascentsModel
-
-
-getCriteriaFromItem : Item -> ItemPageItemForm
-getCriteriaFromItem item =
-    case item of
-        ClimbingRouteItem ->
-            climbingRouteForm
-
-        AscentItem ->
-            ascentForm
-
-        SectorItem ->
-            sectorForm
+import Utilities.ItemPageUtilities exposing (getCriteriaFromItem, getModelFromItem)
 
 
 setItemPageModel : Item -> ItemPageModel -> Model -> Model
@@ -43,6 +18,9 @@ setItemPageModel item itemPageModel model =
 
         AscentItem ->
             { model | ascentsModel = itemPageModel }
+
+        AreaItem ->
+            { model | areasModel = itemPageModel }
 
 
 update : ItemPageMsg -> Item -> Model -> ( Model, Cmd Msg )

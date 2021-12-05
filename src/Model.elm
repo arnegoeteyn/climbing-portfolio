@@ -1,7 +1,7 @@
 module Model exposing (..)
 
 import Browser.Navigation exposing (Key)
-import Data exposing (Ascent, ClimbingRoute, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, Sector)
 import Date exposing (Date)
 import DatePicker
 import Dict exposing (Dict)
@@ -17,9 +17,11 @@ type alias Model =
     , climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
+    , areas : Dict Int Area
     , climbingRoutesModel : ItemPageModel
     , sectorsModel : ItemPageModel
     , ascentsModel : ItemPageModel
+    , areasModel : ItemPageModel
     }
 
 

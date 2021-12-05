@@ -31,7 +31,10 @@
         {
             "id": 1,
             "name": "Frankenjura",
-            "country": "Germany"
+            "country": "Germany",
+            "sectorIds": [
+                1
+            ]
         },
         {
             "id": 2,
@@ -42,6 +45,7 @@
     "sectors": [
         {
             "id": 1,
+            "areaId": 1,
             "name": "Endorama",
             "routeIds": [
                 1

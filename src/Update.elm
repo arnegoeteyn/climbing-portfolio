@@ -8,15 +8,16 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString)
+import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
 import Model exposing (AppState(..), ItemPageItemForm, Model)
 import Task
 import Update.ClimbingRoute exposing (updateClimbingRoute)
-import Update.ItemPage exposing (getModelFromItem)
+import Update.ItemPage
 import Url
 import Utilities exposing (newId)
+import Utilities.ItemPageUtilities exposing (getModelFromItem)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,6 +55,7 @@ update msg model =
                         , climbingRoutes = file.climbingRoutes
                         , ascents = file.ascents
                         , sectors = file.sectors
+                        , areas = file.areas
                       }
                     , Cmd.none
                     )
@@ -64,7 +66,7 @@ update msg model =
         ExportRequested ->
             let
                 result =
-                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors }
+                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors, areas = model.areas }
             in
             ( model, File.Download.string "result.json" "application/json" result )
 
@@ -106,7 +108,9 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        -- ToDatePicker subMsg ->
+        ToDatePicker subMsg ->
+            ( model, Cmd.none )
+
         --     let
         --         climbingRoutesModel =
         --             model.climbingRoutesModel
@@ -149,9 +153,6 @@ update msg model =
         --     ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
         ItemPage item itemPageMsg ->
             Update.ItemPage.update itemPageMsg item model
-
-        _ ->
-            ( model, Cmd.none )
 
 
 getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
@@ -211,8 +212,14 @@ sectorFromForm model form =
 
         maybeName =
             getCriteriumValueFromForm "name" form
+
+        maybeArea =
+            form.parentId
+                |> Maybe.andThen String.toInt
+                |> Maybe.andThen (\id -> Dict.get id model.areas)
     in
     { id = newSectorId
     , name = Maybe.withDefault "" maybeName
     , routeIds = Nothing
+    , areaId = Maybe.map .id maybeArea
     }
