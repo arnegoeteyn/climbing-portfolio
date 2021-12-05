@@ -1,7 +1,6 @@
 module Message exposing (..)
 
 import Browser
-import Data exposing (ClimbingRoute, ItemPageItem, Sector)
 import DatePicker
 import File exposing (File)
 import Url exposing (Url)
@@ -20,6 +19,12 @@ type Item
     = ClimbingRouteItem
     | AscentItem
     | SectorItem
+
+
+type alias ItemRelation =
+    { parent : Maybe Item
+    , child : Maybe Item
+    }
 
 
 type Msg
@@ -48,7 +53,12 @@ type ItemPageMsg
     = OpenForm
     | CloseForm
     | SelectItem Int
-    | FormUpdateMessage String String
+    | FormUpdateMessage CriteriumUpdate
+
+
+type CriteriumUpdate
+    = UpdateParent String
+    | UpdateKey String String
 
 
 type ClimbingRouteMsg
@@ -56,6 +66,4 @@ type ClimbingRouteMsg
 
 
 type SectorMsg
-    = SectorSelected Sector
-    | ShowNewSectorForm
-    | CloseNewSectorForm
+    = NoneSector

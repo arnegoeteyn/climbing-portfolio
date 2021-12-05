@@ -10,7 +10,6 @@ import Model exposing (Model)
 import Utilities exposing (viewInput)
 import Utilities.ItemPageUtilities exposing (getDataFromItem)
 import View.Page.GenericItemPage exposing (viewItemPage)
-import View.Widget.GenericItemCard exposing (viewClimbingRouteCard)
 
 
 view : Model -> Html Msg

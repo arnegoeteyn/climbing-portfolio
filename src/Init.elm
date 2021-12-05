@@ -5,7 +5,7 @@ import Data exposing (ClimbingRoute, jsonFileDecoder)
 import DatePicker
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
-import Message exposing (ClimbingRouteMsg(..), Item(..), Msg, Route(..))
+import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg, Route(..))
 import Model exposing (ClimbingRoutesModel, Criterium, ItemPageItemForm, ItemPageModel, Model, SectorsModel)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
@@ -60,20 +60,11 @@ itemPageModel t =
     )
 
 
-routesModel : ( ClimbingRoutesModel, Cmd Msg )
-routesModel =
-    let
-        ( datePicker, datePickerFx ) =
-            DatePicker.init
-    in
-    ( { selectedRoute = Nothing
-      , form = Nothing
-      , showNewAscentDate = False
-      , datePicker = datePicker
-      , date = Nothing
-      }
-    , Cmd.map Message.ToDatePicker datePickerFx
-    )
+climbingRouteRelations : ItemRelation
+climbingRouteRelations =
+    { parent = Just SectorItem
+    , child = Just AscentItem
+    }
 
 
 climbingRouteForm : ItemPageItemForm
@@ -83,9 +74,10 @@ climbingRouteForm =
             [ ( "_parentId", { value = "", label = "_parentId" } )
             , ( "name", { value = "", label = "name" } )
             , ( "grade", { value = "", label = "grade" } )
+            , ( "description", { value = "", label = "description" } )
             ]
-    , order = [ "name", "grade" ]
-    , parent = Just SectorItem
+    , order = [ "name", "grade", "description" ]
+    , parentId = Nothing
     }
 
 
@@ -93,7 +85,14 @@ ascentForm : ItemPageItemForm
 ascentForm =
     { criteria = Dict.empty
     , order = []
-    , parent = Just ClimbingRouteItem
+    , parentId = Nothing
+    }
+
+
+ascentRelations : ItemRelation
+ascentRelations =
+    { parent = Just ClimbingRouteItem
+    , child = Nothing
     }
 
 
@@ -104,7 +103,14 @@ sectorForm =
             [ ( "name", { value = "", label = "name" } )
             ]
     , order = [ "name" ]
-    , parent = Nothing
+    , parentId = Nothing
+    }
+
+
+sectorRelations : ItemRelation
+sectorRelations =
+    { parent = Nothing
+    , child = Just ClimbingRouteItem
     }
 
 

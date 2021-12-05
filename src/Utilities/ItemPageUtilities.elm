@@ -3,7 +3,7 @@ module Utilities.ItemPageUtilities exposing (..)
 import Data exposing (Ascent, ClimbingRoute, ItemPageItem, Sector)
 import Dict exposing (Dict)
 import Init exposing (ascentForm, climbingRouteForm, sectorForm)
-import Message exposing (Item(..))
+import Message exposing (Item(..), ItemRelation)
 import Model exposing (ItemPageItemForm, ItemPageModel, Model)
 
 
@@ -59,13 +59,28 @@ getDataFromItem item model =
             Dict.map toSectorItem model.sectors
 
 
+getRelationFromItem : Item -> ItemRelation
+getRelationFromItem item =
+    case item of
+        ClimbingRouteItem ->
+            Init.climbingRouteRelations
+
+        AscentItem ->
+            Init.ascentRelations
+
+        SectorItem ->
+            Init.sectorRelations
+
+
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
 toClimbingRouteItem _ climbingRoute =
     { cardHeader =
-        List.foldl (++) "" <|
-            [ climbingRoute.name, "[", climbingRoute.grade, "]" ]
+        List.foldr (++) "" <|
+            [ climbingRoute.name, " [", climbingRoute.grade, "]" ]
     , identifier = climbingRoute.name
+    , cardDescription = climbingRoute.description
     , id = climbingRoute.id
+    , parentId = climbingRoute.sectorId
     }
 
 
@@ -74,6 +89,8 @@ toSectorItem _ sector =
     { cardHeader = sector.name
     , identifier = sector.name
     , id = sector.id
+    , cardDescription = Nothing
+    , parentId = Nothing
     }
 
 
@@ -81,5 +98,7 @@ toAscentItem : Int -> Ascent -> ItemPageItem
 toAscentItem _ ascent =
     { cardHeader = ascent.date
     , identifier = ascent.date
+    , cardDescription = Nothing
     , id = ascent.id
+    , parentId = Just ascent.routeId
     }

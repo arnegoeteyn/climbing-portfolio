@@ -5,12 +5,13 @@ import Dict exposing (Dict(..))
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Message exposing (ClimbingRouteMsg(..), ItemPageMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
-import Utilities.ItemPageUtilities exposing (getDataFromItem)
+import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getDataFromItem)
+import View.Widget.GenericItemCard as GenericItemCard
 
 
 
@@ -47,14 +48,14 @@ viewItemForm itemPageModel model =
                     div [] []
 
                 Just criterium ->
-                    viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage key value))
+                    viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
 
         maybeParentCriterium =
-            itemPageModel.form
-                |> Maybe.andThen .parent
+            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
+                |> .parent
                 |> Maybe.map
                     (\parentItem ->
-                        select [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage "_parentId" value)) ] <|
+                        select [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateParent value)) ] <|
                             option [ value "" ] [ text "" ]
                                 :: (getDataFromItem parentItem model
                                         |> Dict.values
@@ -92,9 +93,7 @@ viewItemPage items itemPageModel model =
         , div
             [ css [ Tw.grid, Tw.grid_cols_2 ] ]
             [ viewItemList items itemPageModel model
-            , div [ css [ Tw.flex, Tw.justify_center ] ] [ text <| (Maybe.map String.fromInt itemPageModel.selectedItemId |> Maybe.withDefault "") ]
-
-            -- , div [ css [ Tw.flex, Tw.justify_center ] ] [ (config.viewItemCard <| config.getSelectedItem) model ]
+            , div [ css [ Tw.flex, Tw.justify_center ] ] [ GenericItemCard.view itemPageModel model ]
             ]
         ]
 

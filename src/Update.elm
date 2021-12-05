@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (climbingRouteFromParameters, encodedJsonFile, jsonFileDecoder)
+import Data exposing (encodedJsonFile, jsonFileDecoder)
 import Dict
 import File
 import File.Download
@@ -166,7 +166,7 @@ climbingRouteFromForm model form =
             newId model.climbingRoutes
 
         maybeSector =
-            getCriteriumValueFromForm "_parentId" form
+            form.parentId
                 |> Maybe.andThen String.toInt
                 |> Maybe.andThen (\id -> Dict.get id model.sectors)
 
@@ -175,6 +175,9 @@ climbingRouteFromForm model form =
 
         maybeGrade =
             getCriteriumValueFromForm "grade" form
+
+        maybeDescription =
+            getCriteriumValueFromForm "description" form
 
         newRouteIds =
             newRouteId
@@ -193,7 +196,7 @@ climbingRouteFromForm model form =
       , sectorId = Maybe.map .id maybeSector
       , name = Maybe.withDefault "" maybeName
       , grade = Maybe.withDefault "" maybeGrade
-      , description = Nothing
+      , description = maybeDescription
       , ascentIds = Just []
       }
     , modifiedSectors

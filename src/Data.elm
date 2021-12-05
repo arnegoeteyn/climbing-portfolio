@@ -10,7 +10,9 @@ import Utilities exposing (encodeNullable)
 type alias ItemPageItem =
     { cardHeader : String
     , identifier : String
+    , cardDescription : Maybe String
     , id : Int
+    , parentId : Maybe Int
     }
 
 
