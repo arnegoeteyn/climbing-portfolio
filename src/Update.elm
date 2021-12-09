@@ -11,9 +11,8 @@ import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
-import Model exposing (AppState(..), ItemPageItemForm, Model)
+import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
 import Task
-import Update.ClimbingRoute exposing (updateClimbingRoute)
 import Update.ItemPage
 import Url
 import Utilities exposing (newId)
@@ -71,7 +70,7 @@ update msg model =
             ( model, File.Download.string "result.json" "application/json" result )
 
         ClimbingRoute climbingRouteMsg ->
-            updateClimbingRoute climbingRouteMsg model
+            ( model, Cmd.none )
 
         Sector sectorMsg ->
             ( model, Cmd.none )
@@ -83,30 +82,27 @@ update msg model =
             let
                 itemPageModel =
                     getModelFromItem item model
+
+                form =
+                    itemPageModel.form
+
+                newModel =
+                    case item of
+                        ClimbingRouteItem ->
+                            let
+                                ( newClimbingRoute, modifiedSectors ) =
+                                    climbingRouteFromForm model form
+                            in
+                            { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
+
+                        _ ->
+                            let
+                                newSector =
+                                    sectorFromForm model form
+                            in
+                            { model | sectors = Dict.insert newSector.id newSector model.sectors }
             in
-            case itemPageModel.form of
-                Just form ->
-                    let
-                        newModel =
-                            case item of
-                                ClimbingRouteItem ->
-                                    let
-                                        ( newClimbingRoute, modifiedSectors ) =
-                                            climbingRouteFromForm model form
-                                    in
-                                    { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
-
-                                _ ->
-                                    let
-                                        newSector =
-                                            sectorFromForm model form
-                                    in
-                                    { model | sectors = Dict.insert newSector.id newSector model.sectors }
-                    in
-                    ( newModel, Cmd.none )
-
-                Nothing ->
-                    ( model, Cmd.none )
+            ( newModel, Cmd.none )
 
         ToDatePicker subMsg ->
             ( model, Cmd.none )
@@ -164,7 +160,12 @@ climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.
 climbingRouteFromForm model form =
     let
         newRouteId =
-            newId model.climbingRoutes
+            case form.formState of
+                Update id ->
+                    id
+
+                _ ->
+                    newId model.climbingRoutes
 
         maybeSector =
             form.parentId
@@ -193,7 +194,7 @@ climbingRouteFromForm model form =
                 |> Maybe.map (\sector -> Dict.insert sector.id sector model.sectors)
                 |> Maybe.withDefault model.sectors
     in
-    ( { id = newId model.climbingRoutes
+    ( { id = newRouteId
       , sectorId = Maybe.map .id maybeSector
       , name = Maybe.withDefault "" maybeName
       , grade = Maybe.withDefault "" maybeGrade

@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
-import Utilities.ItemPageUtilities exposing (getCriteriaFromItem, getModelFromItem)
+import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
 setItemPageModel : Item -> ItemPageModel -> Model -> Model
@@ -27,59 +27,60 @@ update : ItemPageMsg -> Item -> Model -> ( Model, Cmd Msg )
 update msg item model =
     let
         itemPageModel =
-            getModelFromItem item model
+            ItemPageUtilities.getModelFromItem item model
 
         updatedItemPageModel =
             case msg of
-                OpenForm ->
-                    { itemPageModel | form = Just <| getCriteriaFromItem item }
+                CreateNewItem ->
+                    { itemPageModel | form = (\f -> { f | formState = Model.Create }) itemPageModel.form }
+
+                UpdateItem itemId ->
+                    let
+                        criteria =
+                            ItemPageUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
+                    in
+                    { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }
 
                 CloseForm ->
-                    { itemPageModel | form = Nothing }
+                    { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }
 
                 SelectItem id ->
                     { itemPageModel | selectedItemId = Just id }
 
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
-                        maybeForm =
+                        form =
                             itemPageModel.form
-                    in
-                    case maybeForm of
-                        Nothing ->
-                            itemPageModel
 
-                        Just form ->
-                            let
-                                updatedForm =
-                                    case criteriumUpdateMsg of
-                                        UpdateKey key value ->
+                        updatedForm =
+                            case criteriumUpdateMsg of
+                                UpdateKey key value ->
+                                    let
+                                        updatedFormCriterium : Dict String Criterium -> Maybe Criterium
+                                        updatedFormCriterium formCriteria =
                                             let
-                                                updatedFormCriterium : Dict String Criterium -> Maybe Criterium
-                                                updatedFormCriterium formCriteria =
-                                                    let
-                                                        formItem =
-                                                            Dict.get key formCriteria
-                                                    in
-                                                    Maybe.map (\aFormItem -> { aFormItem | value = value }) formItem
-
-                                                updatedCriteria formCriteria =
-                                                    let
-                                                        maybeItem =
-                                                            updatedFormCriterium formCriteria
-                                                    in
-                                                    case maybeItem of
-                                                        Nothing ->
-                                                            formCriteria
-
-                                                        Just i ->
-                                                            Dict.insert key i formCriteria
+                                                formItem =
+                                                    Dict.get key formCriteria
                                             in
-                                            { form | criteria = updatedCriteria form.criteria }
+                                            Maybe.map (\aFormItem -> { aFormItem | value = value }) formItem
 
-                                        UpdateParent value ->
-                                            { form | parentId = Just value }
-                            in
-                            { itemPageModel | form = Just updatedForm }
+                                        updatedCriteria formCriteria =
+                                            let
+                                                maybeItem =
+                                                    updatedFormCriterium formCriteria
+                                            in
+                                            case maybeItem of
+                                                Nothing ->
+                                                    formCriteria
+
+                                                Just i ->
+                                                    Dict.insert key i formCriteria
+                                    in
+                                    { form | criteria = updatedCriteria form.criteria }
+
+                                UpdateParent value ->
+                                    { form | parentId = Just value }
+                    in
+                    { itemPageModel | form = updatedForm }
     in
     ( setItemPageModel item updatedItemPageModel model, Cmd.none )

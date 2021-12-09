@@ -4,7 +4,7 @@ import Data exposing (Area, Ascent, ClimbingRoute, ItemPageItem, Sector)
 import Dict exposing (Dict)
 import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (Item(..), ItemRelation)
-import Model exposing (ItemPageItemForm, ItemPageModel, Model)
+import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -23,8 +23,8 @@ getModelFromItem item model =
             model.areasModel
 
 
-getCriteriaFromItem : Item -> ItemPageItemForm
-getCriteriaFromItem item =
+getCriteriaForItem : Item -> ItemPageItemForm
+getCriteriaForItem item =
     case item of
         ClimbingRouteItem ->
             climbingRouteForm
@@ -87,6 +87,27 @@ getRelationFromItem item =
             Init.areaRelations
 
 
+getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
+getCriteriaFromItem requestId itemType model =
+    Maybe.withDefault Dict.empty <|
+        case itemType of
+            ClimbingRouteItem ->
+                Dict.get requestId model.climbingRoutes
+                    |> Maybe.map toClimbingRouteFormCriteria
+
+            AscentItem ->
+                Dict.get requestId model.ascents
+                    |> Maybe.map toAscentFormCriteria
+
+            AreaItem ->
+                Dict.get requestId model.areas
+                    |> Maybe.map toAreaFormCriteria
+
+            SectorItem ->
+                Dict.get requestId model.sectors
+                    |> Maybe.map toSectorFormCriteria
+
+
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
 toClimbingRouteItem _ climbingRoute =
     { cardHeader =
@@ -96,7 +117,18 @@ toClimbingRouteItem _ climbingRoute =
     , cardDescription = climbingRoute.description
     , id = climbingRoute.id
     , parentId = climbingRoute.sectorId
+    , childIds = climbingRoute.ascentIds
     }
+
+
+toClimbingRouteFormCriteria : ClimbingRoute -> Dict String Criterium
+toClimbingRouteFormCriteria route =
+    Dict.fromList
+        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId" } )
+        , ( "name", { value = route.name, label = "name" } )
+        , ( "grade", { value = route.grade, label = "grade" } )
+        , ( "description", { value = Maybe.withDefault "" route.description, label = "description" } )
+        ]
 
 
 toSectorItem : Int -> Sector -> ItemPageItem
@@ -106,7 +138,13 @@ toSectorItem _ sector =
     , id = sector.id
     , cardDescription = Nothing
     , parentId = sector.areaId
+    , childIds = sector.routeIds
     }
+
+
+toSectorFormCriteria : Sector -> Dict String Criterium
+toSectorFormCriteria sector =
+    Dict.empty
 
 
 toAreaItem : Int -> Area -> ItemPageItem
@@ -116,7 +154,13 @@ toAreaItem _ area =
     , id = area.id
     , cardDescription = Just area.country
     , parentId = Nothing
+    , childIds = area.sectorIds
     }
+
+
+toAreaFormCriteria : Area -> Dict String Criterium
+toAreaFormCriteria area =
+    Dict.empty
 
 
 toAscentItem : Int -> Ascent -> ItemPageItem
@@ -126,4 +170,10 @@ toAscentItem _ ascent =
     , cardDescription = Nothing
     , id = ascent.id
     , parentId = Just ascent.routeId
+    , childIds = Nothing
     }
+
+
+toAscentFormCriteria : Ascent -> Dict String Criterium
+toAscentFormCriteria ascent =
+    Dict.empty

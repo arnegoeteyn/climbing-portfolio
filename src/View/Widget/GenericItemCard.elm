@@ -5,7 +5,8 @@ import DatePicker
 import Dict
 import Html.Styled exposing (Html, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css)
-import Message exposing (ClimbingRouteMsg(..), Item(..), Msg)
+import Html.Styled.Events exposing (onClick)
+import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Tailwind.Utilities as Tw
 import Utilities.ItemPageUtilities as ItemPageUtilities
@@ -75,32 +76,45 @@ view itemPageModel model =
                         , div [ cardContentTWProperties ]
                             [ p [ cardAreaDescriptionTWProperties ] [ text <| (Maybe.map (\parent -> parent.identifier ++ " ~ Fontainebleau") maybeParent |> Maybe.withDefault "") ]
                             , p [ cardDescriptionTWProperties ] [ text <| Maybe.withDefault "" item.cardDescription ]
-
-                            -- , viewAscents climbingRoute model
+                            , viewChildren item itemPageModel.itemType model
                             ]
-                        , footer [ cardFooterTWProperties ] [ button [ cardButtonTWProperties ] [ text "edit" ] ]
+                        , footer [ cardFooterTWProperties ] [ button [ cardButtonTWProperties, onClick (ItemPage itemPageModel.itemType <| UpdateItem item.id) ] [ text "edit" ] ]
                         ]
 
 
+viewChildren : ItemPageItem -> Item -> Model -> Html Msg
+viewChildren itemPageItem item model =
+    let
+        childRelation =
+            ItemPageUtilities.getRelationFromItem item
+    in
+    case childRelation.child of
+        Just childItemType ->
+            let
+                childCollection =
+                    ItemPageUtilities.getDataFromItem childItemType model
 
--- viewAscents : ClimbingRoute -> Model -> Html Msg
--- viewAscents route model =
---     let
---         ascents =
---             List.filterMap identity <| List.map (\id -> Dict.get id model.ascents) (Maybe.withDefault [] route.ascentIds)
---         viewAscent ascent =
---             div [] [ text ascent.date ]
---         datePickerDialog =
---             DatePicker.view model.climbingRoutesModel.date DatePicker.defaultSettings model.climbingRoutesModel.datePicker
---                 |> Html.Styled.fromUnstyled
---                 |> Html.Styled.map Message.ToDatePicker
---     in
---     div []
---         [ text <| String.fromInt (List.length ascents) ++ " ascents!"
---         , button [ onClick (Message.ClimbingRoute <| AddAscentButtonClicked) ] [ text "+" ]
---         , if model.climbingRoutesModel.showNewAscentDate then
---             datePickerDialog
---           else
---             text ""
---         , div [] <| List.map viewAscent ascents
---         ]
+                children =
+                    List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Maybe.withDefault [] itemPageItem.childIds
+
+                viewChild child =
+                    div [] [ text child.identifier ]
+
+                -- datePickerDialog =
+                --     DatePicker.view model.climbingRoutesModel.date DatePicker.defaultSettings model.climbingRoutesModel.datePicker
+                --         |> Html.Styled.fromUnstyled
+                --         |> Html.Styled.map Message.ToDatePicker
+            in
+            div []
+                [ text <| String.fromInt (List.length children) ++ " children!"
+
+                -- , button [ onClick (Message.ClimbingRoute <| AddAscentButtonClicked) ] [ text "+" ]
+                -- , if model.climbingRoutesModel.showNewAscentDate then
+                -- datePickerDialog
+                --   else
+                -- text ""
+                , div [] <| List.map viewChild children
+                ]
+
+        Nothing ->
+            div [] []

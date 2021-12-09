@@ -13,6 +13,7 @@ type alias ItemPageItem =
     , cardDescription : Maybe String
     , id : Int
     , parentId : Maybe Int
+    , childIds : Maybe (List Int)
     }
 
 
@@ -56,6 +57,7 @@ encodedJsonFile root =
         [ ( "routes", Json.Encode.list encodeClimbingRoute (Dict.values root.climbingRoutes) )
         , ( "ascents", Json.Encode.list encodeAscent (Dict.values root.ascents) )
         , ( "sectors", Json.Encode.list encodeSector (Dict.values root.sectors) )
+        , ( "areas", Json.Encode.list encodeArea (Dict.values root.areas) )
         ]
 
 

@@ -5,7 +5,7 @@ import Data exposing (ClimbingRoute, Sector, jsonFileDecoder)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg, Route(..))
-import Model exposing (ClimbingRoutesModel, Criterium, ItemPageItemForm, ItemPageModel, Model, SectorsModel)
+import Model exposing (ClimbingRoutesModel, Criterium, FormState(..), ItemPageItemForm, ItemPageModel, Model, SectorsModel)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
@@ -56,7 +56,7 @@ init storageCache url key =
 
 itemPageModel : Item -> ( ItemPageModel, Cmd Msg )
 itemPageModel t =
-    ( { form = Nothing
+    ( { form = climbingRouteForm
       , itemType = t
       , selectedItemId = Nothing
       }
@@ -82,6 +82,7 @@ climbingRouteForm =
             ]
     , order = [ "name", "grade", "description" ]
     , parentId = Nothing
+    , formState = Hidden
     }
 
 
@@ -90,6 +91,7 @@ ascentForm =
     { criteria = Dict.empty
     , order = []
     , parentId = Nothing
+    , formState = Hidden
     }
 
 
@@ -108,6 +110,7 @@ sectorForm =
             ]
     , order = [ "name" ]
     , parentId = Nothing
+    , formState = Hidden
     }
 
 
@@ -127,6 +130,7 @@ areaForm =
             ]
     , order = [ "name" ]
     , parentId = Nothing
+    , formState = Hidden
     }
 
 

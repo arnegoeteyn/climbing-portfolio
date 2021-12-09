@@ -46,7 +46,7 @@ type alias SectorsModel =
 
 type alias ItemPageModel =
     { itemType : Item
-    , form : Maybe ItemPageItemForm
+    , form : ItemPageItemForm
     , selectedItemId : Maybe Int
     }
 
@@ -55,7 +55,14 @@ type alias ItemPageItemForm =
     { criteria : Dict String Criterium
     , order : List String
     , parentId : Maybe String
+    , formState : FormState
     }
+
+
+type FormState
+    = Hidden
+    | Create
+    | Update Int
 
 
 type alias Criterium =

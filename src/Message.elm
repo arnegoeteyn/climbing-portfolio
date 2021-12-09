@@ -51,7 +51,8 @@ type HomeMsg
 
 
 type ItemPageMsg
-    = OpenForm
+    = CreateNewItem
+    | UpdateItem Int
     | CloseForm
     | SelectItem Int
     | FormUpdateMessage CriteriumUpdate
