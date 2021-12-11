@@ -56,13 +56,13 @@
         {
             "id": 1,
             "routeId": 1,
-            "date": "2020/09/01",
+            "date": "2020-09-01",
             "kind": "onsight"
         },
         {
             "id": 2,
             "routeId": 1,
-            "date": "2020/09/01",
+            "date": "2020-09-01",
             "kind": "repeat"
         }
     ]

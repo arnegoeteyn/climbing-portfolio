@@ -5,6 +5,8 @@ import Dict exposing (Dict)
 import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (Item(..), ItemRelation)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
+import Set
+import Utilities exposing (newId)
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -21,38 +23,6 @@ getModelFromItem item model =
 
         AreaItem ->
             model.areasModel
-
-
-getCriteriaForItem : Item -> ItemPageItemForm
-getCriteriaForItem item =
-    case item of
-        ClimbingRouteItem ->
-            climbingRouteForm
-
-        AscentItem ->
-            ascentForm
-
-        SectorItem ->
-            sectorForm
-
-        AreaItem ->
-            areaForm
-
-
-setItemPageModel : Item -> ItemPageModel -> Model -> Model
-setItemPageModel item itemPageModel model =
-    case item of
-        ClimbingRouteItem ->
-            { model | climbingRoutesModel = itemPageModel }
-
-        SectorItem ->
-            { model | sectorsModel = itemPageModel }
-
-        AscentItem ->
-            { model | ascentsModel = itemPageModel }
-
-        AreaItem ->
-            { model | areasModel = itemPageModel }
 
 
 getDataFromItem : Item -> Model -> Dict Int ItemPageItem
@@ -108,6 +78,51 @@ getCriteriaFromItem requestId itemType model =
                     |> Maybe.map toSectorFormCriteria
 
 
+getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
+getParentFromForm form parentCollection =
+    form.parentId
+        |> Maybe.andThen String.toInt
+        |> Maybe.andThen (\id -> Dict.get id parentCollection)
+
+
+getNewIdFromFrom : ItemPageItemForm -> Dict Int a -> Int
+getNewIdFromFrom form collection =
+    case form.formState of
+        Model.Update id ->
+            id
+
+        _ ->
+            newId collection
+
+
+modifiedParentCollection :
+    Int
+    -> Maybe { a | id : Int }
+    -> ({ a | id : Int } -> Maybe (Set.Set Int))
+    -> (Maybe (Set.Set Int) -> { a | id : Int } -> { a | id : Int })
+    -> Dict Int { a | id : Int }
+    -> Dict Int { a | id : Int }
+modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCollection =
+    let
+        newChildIds =
+            Set.insert
+                newId
+            <|
+                (maybeParent
+                    |> Maybe.andThen childAccessor
+                    |> Maybe.withDefault Set.empty
+                )
+
+        modifiedCollection =
+            maybeParent
+                |> Maybe.map (updateChildIds <| Just newChildIds)
+                -- (\parent -> { parent | childAccessor = Just newChildIds })
+                |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
+                |> Maybe.withDefault parentCollection
+    in
+    modifiedCollection
+
+
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
 toClimbingRouteItem _ climbingRoute =
     { cardHeader =
@@ -124,10 +139,10 @@ toClimbingRouteItem _ climbingRoute =
 toClimbingRouteFormCriteria : ClimbingRoute -> Dict String Criterium
 toClimbingRouteFormCriteria route =
     Dict.fromList
-        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId" } )
-        , ( "name", { value = route.name, label = "name" } )
-        , ( "grade", { value = route.grade, label = "grade" } )
-        , ( "description", { value = Maybe.withDefault "" route.description, label = "description" } )
+        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        , ( "name", { value = route.name, label = "name", type_ = Model.String } )
+        , ( "grade", { value = route.grade, label = "grade", type_ = Model.String } )
+        , ( "description", { value = Maybe.withDefault "" route.description, label = "description", type_ = Model.String } )
         ]
 
 
@@ -144,7 +159,10 @@ toSectorItem _ sector =
 
 toSectorFormCriteria : Sector -> Dict String Criterium
 toSectorFormCriteria sector =
-    Dict.empty
+    Dict.fromList
+        [ ( "_parentId", { value = sector.areaId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        , ( "name", { value = sector.name, label = "name", type_ = Model.String } )
+        ]
 
 
 toAreaItem : Int -> Area -> ItemPageItem
@@ -160,20 +178,27 @@ toAreaItem _ area =
 
 toAreaFormCriteria : Area -> Dict String Criterium
 toAreaFormCriteria area =
-    Dict.empty
+    Dict.fromList
+        [ ( "name", { value = area.name, label = "name", type_ = Model.Enumeration } )
+        , ( "country", { value = area.country, label = "country", type_ = Model.String } )
+        ]
 
 
 toAscentItem : Int -> Ascent -> ItemPageItem
 toAscentItem _ ascent =
-    { cardHeader = ascent.date
-    , identifier = ascent.date
-    , cardDescription = Nothing
+    { cardHeader = Maybe.withDefault (String.fromInt ascent.id) ascent.date
+    , identifier = Maybe.withDefault (String.fromInt ascent.id) ascent.date
+    , cardDescription = ascent.description
     , id = ascent.id
-    , parentId = Just ascent.routeId
+    , parentId = ascent.routeId
     , childIds = Nothing
     }
 
 
 toAscentFormCriteria : Ascent -> Dict String Criterium
 toAscentFormCriteria ascent =
-    Dict.empty
+    Dict.fromList
+        [ ( "_parentId", { value = ascent.routeId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        , ( "description", { value = Maybe.withDefault "" ascent.description, label = "description", type_ = Model.String } )
+        , ( "date", { value = Maybe.withDefault "" ascent.date, label = "date", type_ = Model.Date } )
+        ]

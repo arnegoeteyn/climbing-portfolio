@@ -44,3 +44,13 @@ newId dict =
 viewInput : String -> String -> String -> (String -> msg) -> Html msg
 viewInput t p v toMsg =
     input [ type_ t, placeholder p, value v, onInput toMsg ] []
+
+
+ifNot : Maybe a -> Maybe a -> Maybe a
+ifNot new maybe =
+    case maybe of
+        Just _ ->
+            maybe
+
+        Nothing ->
+            new

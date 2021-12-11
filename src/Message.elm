@@ -35,14 +35,12 @@ type Msg
     | JsonLoaded String
     | ExportRequested
     | SaveItemRequested Item
-    | ToDatePicker DatePicker.Msg
+    | ToDatePicker Item String DatePicker.Msg
       -- router
     | ClickedLink Browser.UrlRequest
     | ChangedUrl Url
       -- Pages
     | Home HomeMsg
-    | ClimbingRoute ClimbingRouteMsg
-    | Sector SectorMsg
     | ItemPage Item ItemPageMsg
 
 

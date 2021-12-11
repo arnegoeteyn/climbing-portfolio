@@ -3,6 +3,8 @@ module Update exposing (update)
 import Browser
 import Browser.Navigation as Nav
 import Data exposing (encodedJsonFile, jsonFileDecoder)
+import Date
+import DatePicker exposing (DatePicker)
 import Dict
 import File
 import File.Download
@@ -10,14 +12,14 @@ import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
-import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate, Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
 import Set
 import Task
 import Update.ItemPage
 import Url
 import Utilities exposing (newId)
-import Utilities.ItemPageUtilities exposing (getModelFromItem)
+import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -70,19 +72,13 @@ update msg model =
             in
             ( model, File.Download.string "result.json" "application/json" result )
 
-        ClimbingRoute climbingRouteMsg ->
-            ( model, Cmd.none )
-
-        Sector sectorMsg ->
-            ( model, Cmd.none )
-
         Home homeMsg ->
             ( model, Cmd.none )
 
         SaveItemRequested item ->
             let
                 itemPageModel =
-                    getModelFromItem item model
+                    ItemPageUtilities.getModelFromItem item model
 
                 form =
                     itemPageModel.form
@@ -96,58 +92,41 @@ update msg model =
                             in
                             { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
 
-                        _ ->
+                        SectorItem ->
                             let
-                                newSector =
+                                ( newSector, modifiedAreas ) =
                                     sectorFromForm model form
                             in
-                            { model | sectors = Dict.insert newSector.id newSector model.sectors }
+                            { model | sectors = Dict.insert newSector.id newSector model.sectors, areas = modifiedAreas }
+
+                        AscentItem ->
+                            let
+                                ( newAscent, modifiedRoutes ) =
+                                    ascentFromForm model form
+                            in
+                            { model | ascents = Dict.insert newAscent.id newAscent model.ascents, climbingRoutes = modifiedRoutes }
+
+                        AreaItem ->
+                            Debug.todo "fix"
             in
             ( newModel, Cmd.none )
 
-        ToDatePicker subMsg ->
-            ( model, Cmd.none )
+        ToDatePicker item criterium subMsg ->
+            -- todo rewrite this to be able to work with multiple datepickers in the application
+            let
+                ( newDatePicker, event ) =
+                    DatePicker.update DatePicker.defaultSettings subMsg model.datePicker
 
-        --     let
-        --         climbingRoutesModel =
-        --             model.climbingRoutesModel
-        --         ( newDatePicker, event ) =
-        --             DatePicker.update DatePicker.defaultSettings subMsg climbingRoutesModel.datePicker
-        --         maybeResult =
-        --             Maybe.andThen
-        --                 (\selectedRoute ->
-        --                     case event of
-        --                         DatePicker.Picked date ->
-        --                             let
-        --                                 newAscentId =
-        --                                     newId model.ascents
-        --                                 modifiedRoute =
-        --                                     { selectedRoute | ascentIds = Just <| newAscentId :: Maybe.withDefault [] selectedRoute.ascentIds }
-        --                                 newRoutes =
-        --                                     Dict.insert selectedRoute.id modifiedRoute model.climbingRoutes
-        --                                 newAscent =
-        --                                     { id = newAscentId, routeId = selectedRoute.id, date = Date.toIsoString date }
-        --                                 newAscents =
-        --                                     Dict.insert newAscentId newAscent model.ascents
-        --                             in
-        --                             Just
-        --                                 { newRoutes = newRoutes
-        --                                 , newAscents = newAscents
-        --                                 , newClimbingRoutesModel = { climbingRoutesModel | selectedRoute = Just modifiedRoute, date = Nothing }
-        --                                 }
-        --                         _ ->
-        --                             Nothing
-        --                 )
-        --                 model.climbingRoutesModel.selectedRoute
-        --         newModel =
-        --             Maybe.andThen (\result -> Just { model | ascents = result.newAscents, climbingRoutes = result.newRoutes }) maybeResult
-        --                 |> Maybe.withDefault model
-        --         newClimbingRoutesModel =
-        --             Maybe.andThen (Just << .newClimbingRoutesModel) maybeResult
-        --                 |> Maybe.withDefault climbingRoutesModel
-        --                 |> (\c -> { c | datePicker = newDatePicker })
-        --     in
-        --     ( { newModel | climbingRoutesModel = newClimbingRoutesModel }, Cmd.none )
+                ( newModel, newCmd ) =
+                    case event of
+                        DatePicker.Picked date ->
+                            Update.ItemPage.update (FormUpdateMessage (Message.UpdateKey criterium (Date.toIsoString date))) item model
+
+                        _ ->
+                            ( model, Cmd.none )
+            in
+            ( { newModel | datePicker = newDatePicker }, newCmd )
+
         ItemPage item itemPageMsg ->
             Update.ItemPage.update itemPageMsg item model
 
@@ -161,17 +140,17 @@ climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.
 climbingRouteFromForm model form =
     let
         newRouteId =
-            case form.formState of
-                Update id ->
-                    id
-
-                _ ->
-                    newId model.climbingRoutes
+            ItemPageUtilities.getNewIdFromFrom form model.climbingRoutes
 
         maybeSector =
-            form.parentId
-                |> Maybe.andThen String.toInt
-                |> Maybe.andThen (\id -> Dict.get id model.sectors)
+            ItemPageUtilities.getParentFromForm form model.sectors
+
+        modifiedSectors =
+            ItemPageUtilities.modifiedParentCollection newRouteId
+                maybeSector
+                .routeIds
+                (\newIds sector -> { sector | routeIds = newIds })
+                model.sectors
 
         maybeName =
             getCriteriumValueFromForm "name" form
@@ -181,21 +160,6 @@ climbingRouteFromForm model form =
 
         maybeDescription =
             getCriteriumValueFromForm "description" form
-
-        newRouteIds =
-            Set.insert
-                newRouteId
-            <|
-                (maybeSector
-                    |> Maybe.andThen .routeIds
-                    |> Maybe.withDefault Set.empty
-                )
-
-        modifiedSectors =
-            maybeSector
-                |> Maybe.map (\sector -> { sector | routeIds = Just newRouteIds })
-                |> Maybe.map (\sector -> Dict.insert sector.id sector model.sectors)
-                |> Maybe.withDefault model.sectors
     in
     ( { id = newRouteId
       , sectorId = Maybe.map .id maybeSector
@@ -208,22 +172,60 @@ climbingRouteFromForm model form =
     )
 
 
-sectorFromForm : Model -> ItemPageItemForm -> Data.Sector
+sectorFromForm : Model -> ItemPageItemForm -> ( Data.Sector, Dict.Dict Int Data.Area )
 sectorFromForm model form =
     let
         newSectorId =
-            newId model.sectors
+            ItemPageUtilities.getNewIdFromFrom form model.sectors
+
+        maybeArea =
+            ItemPageUtilities.getParentFromForm form model.areas
+
+        modifiedAreas =
+            ItemPageUtilities.modifiedParentCollection newSectorId
+                maybeArea
+                .sectorIds
+                (\newIds area -> { area | sectorIds = newIds })
+                model.areas
 
         maybeName =
             getCriteriumValueFromForm "name" form
-
-        maybeArea =
-            form.parentId
-                |> Maybe.andThen String.toInt
-                |> Maybe.andThen (\id -> Dict.get id model.areas)
     in
-    { id = newSectorId
-    , name = Maybe.withDefault "" maybeName
-    , routeIds = Nothing
-    , areaId = Maybe.map .id maybeArea
-    }
+    ( { id = newSectorId
+      , name = Maybe.withDefault "" maybeName
+      , routeIds = Nothing
+      , areaId = Maybe.map .id maybeArea
+      }
+    , modifiedAreas
+    )
+
+
+ascentFromForm : Model -> ItemPageItemForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
+ascentFromForm model form =
+    let
+        newAscentId =
+            ItemPageUtilities.getNewIdFromFrom form model.ascents
+
+        maybeRoute =
+            ItemPageUtilities.getParentFromForm form model.climbingRoutes
+
+        modifiedRoutes =
+            ItemPageUtilities.modifiedParentCollection newAscentId
+                maybeRoute
+                .ascentIds
+                (\newIds route -> { route | ascentIds = newIds })
+                model.climbingRoutes
+
+        maybeDescription =
+            getCriteriumValueFromForm "description" form
+
+        maybeDate =
+            getCriteriumValueFromForm "date" form
+    in
+    ( { id = newAscentId
+      , description = maybeDescription
+      , date = maybeDate
+      , routeId = Maybe.map .id maybeRoute
+      }
+    , modifiedRoutes
+    )

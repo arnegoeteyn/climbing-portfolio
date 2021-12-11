@@ -98,8 +98,9 @@ encodeClimbingRoute route =
 
 type alias Ascent =
     { id : Int
-    , routeId : Int
-    , date : String
+    , routeId : Maybe Int
+    , date : Maybe String
+    , description : Maybe String
     }
 
 
@@ -115,16 +116,18 @@ ascentsDecoder : Json.Decode.Decoder Ascent
 ascentsDecoder =
     Json.Decode.succeed Ascent
         |> required "id" int
-        |> required "routeId" int
-        |> required "date" string
+        |> optional "routeId" (Json.Decode.map Just int) Nothing
+        |> optional "date" (Json.Decode.map Just string) Nothing
+        |> optional "description" (Json.Decode.map Just string) Nothing
 
 
 encodeAscent : Ascent -> Json.Encode.Value
 encodeAscent ascent =
     Json.Encode.object
         [ ( "id", Json.Encode.int ascent.id )
-        , ( "routeId", Json.Encode.int ascent.routeId )
-        , ( "date", Json.Encode.string ascent.date )
+        , ( "routeId", encodeNullable Json.Encode.int ascent.routeId )
+        , ( "description", encodeNullable Json.Encode.string ascent.description )
+        , ( "date", encodeNullable Json.Encode.string ascent.date )
         ]
 
 
@@ -151,6 +154,7 @@ encodeSector sector =
         [ ( "id", Json.Encode.int sector.id )
         , ( "name", Json.Encode.string sector.name )
         , ( "routeIds", encodeNullable (Json.Encode.set Json.Encode.int) sector.routeIds )
+        , ( "areaId", encodeNullable Json.Encode.int sector.areaId )
         ]
 
 
@@ -177,5 +181,5 @@ encodeArea area =
         [ ( "id", Json.Encode.int area.id )
         , ( "name", Json.Encode.string area.name )
         , ( "country", Json.Encode.string area.country )
-        , ( "routeIds", encodeNullable (Json.Encode.set Json.Encode.int) area.sectorIds )
+        , ( "sectorIds", encodeNullable (Json.Encode.set Json.Encode.int) area.sectorIds )
         ]

@@ -22,6 +22,7 @@ type alias Model =
     , sectorsModel : ItemPageModel
     , ascentsModel : ItemPageModel
     , areasModel : ItemPageModel
+    , datePicker : DatePicker.DatePicker
     }
 
 
@@ -51,7 +52,14 @@ type FormState
     | Update Int
 
 
+type CriteriumType
+    = String
+    | Date
+    | Enumeration
+
+
 type alias Criterium =
     { value : String
     , label : String
+    , type_ : CriteriumType
     }

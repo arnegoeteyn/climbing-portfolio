@@ -1,10 +1,12 @@
 module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
-import Data exposing (ClimbingRoute, Sector, jsonFileDecoder)
-import Dict exposing (Dict)
+import Data exposing (jsonFileDecoder)
+import DatePicker exposing (DatePicker)
+import Dict
+import Html.Attributes exposing (type_)
 import Json.Decode exposing (decodeString)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg, Route(..))
+import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg(..), Route(..))
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
@@ -24,6 +26,9 @@ init storageCache url key =
 
         ( areasModel, areasCmd ) =
             itemPageModel AreaItem
+
+        ( datePicker, datePickerCmd ) =
+            DatePicker.init
 
         decodedStorage =
             decodeString jsonFileDecoder storageCache
@@ -49,14 +54,30 @@ init storageCache url key =
       , sectorsModel = sectorsModel
       , ascentsModel = ascentsModel
       , areasModel = areasModel
+      , datePicker = datePicker
       }
-    , Cmd.batch [ routesCmd, sectorsCmd, areasCmd, ascentsCmd ]
+    , Cmd.batch [ Cmd.map (ToDatePicker AscentItem "") datePickerCmd, routesCmd, sectorsCmd, areasCmd, ascentsCmd ]
     )
 
 
 itemPageModel : Item -> ( ItemPageModel, Cmd Msg )
 itemPageModel t =
-    ( { form = climbingRouteForm
+    let
+        form =
+            case t of
+                ClimbingRouteItem ->
+                    climbingRouteForm
+
+                AscentItem ->
+                    ascentForm
+
+                SectorItem ->
+                    sectorForm
+
+                AreaItem ->
+                    areaForm
+    in
+    ( { form = form
       , itemType = t
       , selectedItemId = Nothing
       }
@@ -75,10 +96,10 @@ climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria =
         Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId" } )
-            , ( "name", { value = "", label = "name" } )
-            , ( "grade", { value = "", label = "grade" } )
-            , ( "description", { value = "", label = "description" } )
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            , ( "name", { value = "", label = "name", type_ = Model.String } )
+            , ( "grade", { value = "", label = "grade", type_ = Model.String } )
+            , ( "description", { value = "", label = "description", type_ = Model.String } )
             ]
     , order = [ "name", "grade", "description" ]
     , parentId = Nothing
@@ -88,8 +109,13 @@ climbingRouteForm =
 
 ascentForm : ItemPageItemForm
 ascentForm =
-    { criteria = Dict.empty
-    , order = []
+    { criteria =
+        Dict.fromList
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            , ( "date", { value = "", label = "date", type_ = Model.Date } )
+            , ( "description", { value = "", label = "description", type_ = Model.String } )
+            ]
+    , order = [ "date", "description" ]
     , parentId = Nothing
     , formState = Hidden
     }
@@ -106,7 +132,8 @@ sectorForm : ItemPageItemForm
 sectorForm =
     { criteria =
         Dict.fromList
-            [ ( "name", { value = "", label = "name" } )
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            , ( "name", { value = "", label = "name", type_ = Model.String } )
             ]
     , order = [ "name" ]
     , parentId = Nothing
@@ -125,10 +152,10 @@ areaForm : ItemPageItemForm
 areaForm =
     { criteria =
         Dict.fromList
-            [ ( "name", { value = "", label = "name" } )
-            , ( "country", { value = "", label = "name" } )
+            [ ( "name", { value = "", label = "name", type_ = Model.Enumeration } )
+            , ( "country", { value = "", label = "country", type_ = Model.String } )
             ]
-    , order = [ "name" ]
+    , order = [ "name", "country" ]
     , parentId = Nothing
     , formState = Hidden
     }

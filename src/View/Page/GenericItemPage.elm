@@ -1,7 +1,10 @@
 module View.Page.GenericItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
+import Date
+import DatePicker exposing (DatePicker)
 import Dict exposing (Dict(..))
+import Html
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
@@ -27,18 +30,46 @@ viewItemForm itemPageModel model =
                     div [] []
 
                 Just criterium ->
-                    viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
+                    case criterium.type_ of
+                        Model.String ->
+                            viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
+
+                        Model.Enumeration ->
+                            Debug.todo "todo"
+
+                        Model.Date ->
+                            DatePicker.view
+                                (if String.isEmpty criterium.value then
+                                    Nothing
+
+                                 else
+                                    Date.fromIsoString criterium.value |> Result.toMaybe
+                                )
+                                DatePicker.defaultSettings
+                                model.datePicker
+                                |> Html.map (ToDatePicker itemPageModel.itemType key)
+                                |> Html.Styled.fromUnstyled
 
         maybeParentCriterium =
             ItemPageUtilities.getRelationFromItem itemPageModel.itemType
                 |> .parent
                 |> Maybe.map
                     (\parentItem ->
-                        select [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateParent value)) ] <|
+                        select
+                            [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateParent value))
+                            ]
+                        <|
                             option [ value "" ] [ text "" ]
                                 :: (getDataFromItem parentItem model
                                         |> Dict.values
-                                        |> List.map (\item -> option [ value <| String.fromInt item.id ] [ text item.identifier ])
+                                        |> List.map
+                                            (\item ->
+                                                option
+                                                    [ value <| String.fromInt item.id
+                                                    , Html.Styled.Attributes.selected <| String.fromInt item.id == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get "_parentId" itemPageModel.form.criteria)
+                                                    ]
+                                                    [ text item.identifier ]
+                                            )
                                    )
                     )
     in
