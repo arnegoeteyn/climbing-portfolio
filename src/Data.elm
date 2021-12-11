@@ -2,8 +2,10 @@ module Data exposing (..)
 
 import Dict exposing (Dict)
 import Json.Decode exposing (int, list, string)
+import Json.Decode.Extra exposing (set)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode
+import Set exposing (Set)
 import Utilities exposing (encodeNullable)
 
 
@@ -13,7 +15,7 @@ type alias ItemPageItem =
     , cardDescription : Maybe String
     , id : Int
     , parentId : Maybe Int
-    , childIds : Maybe (List Int)
+    , childIds : Maybe (Set Int)
     }
 
 
@@ -67,18 +69,7 @@ type alias ClimbingRoute =
     , name : String
     , grade : String
     , description : Maybe String
-    , ascentIds : Maybe (List Int)
-    }
-
-
-climbingRouteFromParameters : Int -> Maybe Int -> String -> String -> Maybe String -> Maybe (List Int) -> ClimbingRoute
-climbingRouteFromParameters id sectorId name grade description ascentIds =
-    { id = id
-    , sectorId = sectorId
-    , name = name
-    , grade = grade
-    , description = description
-    , ascentIds = ascentIds
+    , ascentIds : Maybe (Set Int)
     }
 
 
@@ -90,7 +81,7 @@ climbingRouteDecoder =
         |> required "name" string
         |> required "grade" string
         |> optional "description" (Json.Decode.map Just string) Nothing
-        |> optional "ascentIds" (Json.Decode.map Just (list int)) Nothing
+        |> optional "ascentIds" (Json.Decode.map Just (set int)) Nothing
 
 
 encodeClimbingRoute : ClimbingRoute -> Json.Encode.Value
@@ -101,7 +92,7 @@ encodeClimbingRoute route =
         , ( "name", Json.Encode.string route.name )
         , ( "grade", Json.Encode.string route.grade )
         , ( "description", encodeNullable Json.Encode.string route.description )
-        , ( "ascentIds", encodeNullable (Json.Encode.list Json.Encode.int) route.ascentIds )
+        , ( "ascentIds", encodeNullable (Json.Encode.set Json.Encode.int) route.ascentIds )
         ]
 
 
@@ -141,7 +132,7 @@ type alias Sector =
     { id : Int
     , areaId : Maybe Int
     , name : String
-    , routeIds : Maybe (List Int)
+    , routeIds : Maybe (Set Int)
     }
 
 
@@ -151,7 +142,7 @@ sectorDecoder =
         |> required "id" int
         |> optional "areaId" (Json.Decode.map Just int) Nothing
         |> required "name" string
-        |> optional "routeIds" (Json.Decode.map Just (list int)) Nothing
+        |> optional "routeIds" (Json.Decode.map Just (set int)) Nothing
 
 
 encodeSector : Sector -> Json.Encode.Value
@@ -159,7 +150,7 @@ encodeSector sector =
     Json.Encode.object
         [ ( "id", Json.Encode.int sector.id )
         , ( "name", Json.Encode.string sector.name )
-        , ( "routeIds", encodeNullable (Json.Encode.list Json.Encode.int) sector.routeIds )
+        , ( "routeIds", encodeNullable (Json.Encode.set Json.Encode.int) sector.routeIds )
         ]
 
 
@@ -167,7 +158,7 @@ type alias Area =
     { id : Int
     , name : String
     , country : String
-    , sectorIds : Maybe (List Int)
+    , sectorIds : Maybe (Set Int)
     }
 
 
@@ -177,7 +168,7 @@ areaDecoder =
         |> required "id" int
         |> required "name" string
         |> required "country" string
-        |> optional "sectorIds" (Json.Decode.map Just (list int)) Nothing
+        |> optional "sectorIds" (Json.Decode.map Just (set int)) Nothing
 
 
 encodeArea : Area -> Json.Encode.Value
@@ -186,5 +177,5 @@ encodeArea area =
         [ ( "id", Json.Encode.int area.id )
         , ( "name", Json.Encode.string area.name )
         , ( "country", Json.Encode.string area.country )
-        , ( "routeIds", encodeNullable (Json.Encode.list Json.Encode.int) area.sectorIds )
+        , ( "routeIds", encodeNullable (Json.Encode.set Json.Encode.int) area.sectorIds )
         ]

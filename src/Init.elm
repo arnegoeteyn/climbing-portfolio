@@ -5,7 +5,7 @@ import Data exposing (ClimbingRoute, Sector, jsonFileDecoder)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg, Route(..))
-import Model exposing (ClimbingRoutesModel, Criterium, FormState(..), ItemPageItemForm, ItemPageModel, Model, SectorsModel)
+import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 

@@ -5,7 +5,7 @@ import Dict exposing (Dict(..))
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), ItemPageMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
@@ -48,8 +48,15 @@ viewItemForm itemPageModel model =
         ]
 
 
-viewItemPage : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
-viewItemPage items itemPageModel model =
+viewItemPage : Item -> Model -> Html Msg
+viewItemPage item model =
+    let
+        items =
+            getDataFromItem item model
+
+        itemPageModel =
+            ItemPageUtilities.getModelFromItem item model
+    in
     div []
         [ viewAddItemButton itemPageModel
             model

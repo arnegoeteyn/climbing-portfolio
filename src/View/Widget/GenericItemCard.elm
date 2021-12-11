@@ -8,6 +8,7 @@ import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
+import Set
 import Tailwind.Utilities as Tw
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
@@ -95,7 +96,7 @@ viewChildren itemPageItem item model =
                     ItemPageUtilities.getDataFromItem childItemType model
 
                 children =
-                    List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Maybe.withDefault [] itemPageItem.childIds
+                    List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
 
                 viewChild child =
                     div [] [ text child.identifier ]

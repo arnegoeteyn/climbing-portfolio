@@ -30,20 +30,6 @@ type AppState
     | Ready
 
 
-type alias ClimbingRoutesModel =
-    { selectedRoute : Maybe ClimbingRoute -- todo to INT
-    , form : Maybe ItemPageItemForm
-    , showNewAscentDate : Bool
-    , datePicker : DatePicker.DatePicker
-    , date : Maybe Date
-    }
-
-
-type alias SectorsModel =
-    { selectedSector : Maybe Sector -- todo to INT
-    }
-
-
 type alias ItemPageModel =
     { itemType : Item
     , form : ItemPageItemForm

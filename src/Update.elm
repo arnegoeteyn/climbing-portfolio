@@ -12,6 +12,7 @@ import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
+import Set
 import Task
 import Update.ItemPage
 import Url
@@ -182,11 +183,13 @@ climbingRouteFromForm model form =
             getCriteriumValueFromForm "description" form
 
         newRouteIds =
-            newRouteId
-                :: (maybeSector
-                        |> Maybe.andThen .routeIds
-                        |> Maybe.withDefault []
-                   )
+            Set.insert
+                newRouteId
+            <|
+                (maybeSector
+                    |> Maybe.andThen .routeIds
+                    |> Maybe.withDefault Set.empty
+                )
 
         modifiedSectors =
             maybeSector
@@ -199,7 +202,7 @@ climbingRouteFromForm model form =
       , name = Maybe.withDefault "" maybeName
       , grade = Maybe.withDefault "" maybeGrade
       , description = maybeDescription
-      , ascentIds = Just []
+      , ascentIds = Just Set.empty
       }
     , modifiedSectors
     )

@@ -1,9 +1,8 @@
 module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
-import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg)
-import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
+import Model exposing (Criterium, ItemPageModel, Model)
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
