@@ -1,7 +1,6 @@
 module View.Widget.GenericItemCard exposing (..)
 
-import Data exposing (ClimbingRoute, ItemPageItem, Sector)
-import DatePicker
+import Data exposing (ItemPageItem)
 import Dict
 import Html.Styled exposing (Html, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css)
@@ -11,6 +10,7 @@ import Model exposing (ItemPageModel, Model)
 import Set
 import Tailwind.Utilities as Tw
 import Utilities.ItemPageUtilities as ItemPageUtilities
+import View.Components.Buttons as Buttons
 
 
 view : ItemPageModel -> Model -> Html Msg
@@ -63,9 +63,6 @@ view itemPageModel model =
 
                         cardFooterTWProperties =
                             css [ Tw.text_right, Tw.py_3, Tw.px_8, Tw.text_gray_400 ]
-
-                        cardButtonTWProperties =
-                            css [ Tw.py_2, Tw.px_4, Tw.mt_5, Tw.bg_green_500, Tw.rounded_lg, Tw.text_white, Tw.font_semibold ]
                     in
                     div [ cardTailwindProperties ]
                         [ img
@@ -79,7 +76,10 @@ view itemPageModel model =
                             , p [ cardDescriptionTWProperties ] [ text <| Maybe.withDefault "" item.cardDescription ]
                             , viewChildren item itemPageModel.itemType model
                             ]
-                        , footer [ cardFooterTWProperties ] [ button [ cardButtonTWProperties, onClick (ItemPage itemPageModel.itemType <| UpdateItem item.id) ] [ text "edit" ] ]
+                        , footer [ cardFooterTWProperties ]
+                            [ button [ Buttons.negativeButtonTWProperties, onClick <| DeleteItem itemPageModel.itemType item.id ] [ text "delete" ]
+                            , button [ Buttons.positiveButtonTWProperties, onClick (ItemPage itemPageModel.itemType <| UpdateItem item.id) ] [ text "edit" ]
+                            ]
                         ]
 
 
@@ -100,20 +100,9 @@ viewChildren itemPageItem item model =
 
                 viewChild child =
                     div [] [ text child.identifier ]
-
-                -- datePickerDialog =
-                --     DatePicker.view model.climbingRoutesModel.date DatePicker.defaultSettings model.climbingRoutesModel.datePicker
-                --         |> Html.Styled.fromUnstyled
-                --         |> Html.Styled.map Message.ToDatePicker
             in
             div []
                 [ text <| String.fromInt (List.length children) ++ " children!"
-
-                -- , button [ onClick (Message.ClimbingRoute <| AddAscentButtonClicked) ] [ text "+" ]
-                -- , if model.climbingRoutesModel.showNewAscentDate then
-                -- datePickerDialog
-                --   else
-                -- text ""
                 , div [] <| List.map viewChild children
                 ]
 

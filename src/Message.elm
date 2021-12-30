@@ -35,6 +35,7 @@ type Msg
     | JsonLoaded String
     | ExportRequested
     | SaveItemRequested Item
+    | DeleteItem Item Int
     | ToDatePicker Item String DatePicker.Msg
       -- router
     | ClickedLink Browser.UrlRequest
@@ -50,8 +51,8 @@ type HomeMsg
 
 type ItemPageMsg
     = CreateNewItem
-    | UpdateItem Int
     | CloseForm
+    | UpdateItem Int
     | SelectItem Int
     | FormUpdateMessage CriteriumUpdate
 

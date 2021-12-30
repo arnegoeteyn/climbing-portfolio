@@ -2,23 +2,22 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (encodedJsonFile, jsonFileDecoder)
+import Data exposing (Sector, encodedJsonFile, jsonFileDecoder)
 import Date
-import DatePicker exposing (DatePicker)
-import Dict
+import DatePicker
+import Dict exposing (Dict)
 import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
-import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate, Item(..), ItemPageMsg(..), Msg(..))
+import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
 import Set
 import Task
 import Update.ItemPage
 import Url
-import Utilities exposing (newId)
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
@@ -74,6 +73,34 @@ update msg model =
 
         Home homeMsg ->
             ( model, Cmd.none )
+
+        DeleteItem item id ->
+            let
+                l =
+                    Set.fromList [ id ]
+
+                updateData =
+                    case item of
+                        AreaItem ->
+                            deleteArea model l
+
+                        SectorItem ->
+                            deleteSector model l
+
+                        ClimbingRouteItem ->
+                            deleteClimbingRoute model l
+
+                        AscentItem ->
+                            deleteAscent model l
+            in
+            ( { model
+                | areas = updateData.areas
+                , sectors = updateData.sectors
+                , climbingRoutes = updateData.climbingRoutes
+                , ascents = updateData.ascents
+              }
+            , Cmd.none
+            )
 
         SaveItemRequested item ->
             let
@@ -133,6 +160,79 @@ update msg model =
 
         ItemPage item itemPageMsg ->
             Update.ItemPage.update itemPageMsg item model
+
+
+type alias ModelData =
+    { areas : Dict Int Data.Area
+    , sectors : Dict Int Data.Sector
+    , climbingRoutes : Dict Int Data.ClimbingRoute
+    , ascents : Dict Int Data.Ascent
+    }
+
+
+deleteArea : Model -> Set.Set Int -> ModelData
+deleteArea model ids =
+    let
+        newAreas =
+            Dict.filter (\_ value -> not <| Set.member value.id ids) model.areas
+
+        sectorIds =
+            Debug.log "test" <|
+                Set.foldl
+                    (\id curr -> Set.union curr (Dict.get id model.areas |> Maybe.andThen .sectorIds |> Maybe.withDefault Set.empty))
+                    Set.empty
+                    ids
+
+        sectorsUpdate =
+            deleteSector model sectorIds
+    in
+    { areas = newAreas, sectors = sectorsUpdate.sectors, climbingRoutes = sectorsUpdate.climbingRoutes, ascents = sectorsUpdate.ascents }
+
+
+deleteSector : Model -> Set.Set Int -> ModelData
+deleteSector model ids =
+    let
+        newSectors =
+            Dict.filter (\_ value -> not <| Set.member value.id ids) model.sectors
+
+        routeIds =
+            Set.foldl
+                (\id curr -> Set.union curr (Dict.get id model.sectors |> Maybe.andThen .routeIds |> Maybe.withDefault Set.empty))
+                Set.empty
+                ids
+
+        climbingRouteUpdate =
+            deleteClimbingRoute model routeIds
+    in
+    { areas = Dict.empty, sectors = newSectors, climbingRoutes = climbingRouteUpdate.climbingRoutes, ascents = climbingRouteUpdate.ascents }
+
+
+deleteClimbingRoute : Model -> Set.Set Int -> ModelData
+deleteClimbingRoute model ids =
+    let
+        newRoutes =
+            Dict.filter (\_ value -> not <| Set.member value.id ids) model.climbingRoutes
+
+        ascentIds =
+            Set.foldl
+                (\id curr -> Set.union curr (Dict.get id model.climbingRoutes |> Maybe.andThen .ascentIds |> Maybe.withDefault Set.empty))
+                Set.empty
+                ids
+
+        ascentUpdate =
+            deleteAscent model
+                ascentIds
+    in
+    { areas = Dict.empty, sectors = Dict.empty, climbingRoutes = newRoutes, ascents = ascentUpdate.ascents }
+
+
+deleteAscent : Model -> Set.Set Int -> ModelData
+deleteAscent model ids =
+    let
+        newAscents =
+            Dict.filter (\_ value -> not <| Set.member value.id ids) model.ascents
+    in
+    { areas = Dict.empty, sectors = Dict.empty, climbingRoutes = Dict.empty, ascents = newAscents }
 
 
 getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
