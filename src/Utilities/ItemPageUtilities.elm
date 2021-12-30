@@ -179,7 +179,7 @@ toAreaItem _ area =
 toAreaFormCriteria : Area -> Dict String Criterium
 toAreaFormCriteria area =
     Dict.fromList
-        [ ( "name", { value = area.name, label = "name", type_ = Model.Enumeration } )
+        [ ( "name", { value = area.name, label = "name", type_ = Model.String } )
         , ( "country", { value = area.country, label = "country", type_ = Model.String } )
         ]
 

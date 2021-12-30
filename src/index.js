@@ -4,6 +4,7 @@ import * as serviceWorker from './serviceWorker';
 
 const storageKey = "store";
 var flags = localStorage.getItem(storageKey);
+flags = flags ? flags : "{}"
 
 var app = Elm.Main.init({
   node: document.getElementById('root'),

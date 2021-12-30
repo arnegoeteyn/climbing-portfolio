@@ -2,7 +2,7 @@ module View.Page.GenericItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
 import Date
-import DatePicker exposing (DatePicker)
+import DatePicker
 import Dict exposing (Dict(..))
 import Html
 import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
@@ -35,7 +35,7 @@ viewItemForm itemPageModel model =
                             viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
 
                         Model.Enumeration ->
-                            Debug.todo "todo"
+                            text "not yet implemented"
 
                         Model.Date ->
                             DatePicker.view

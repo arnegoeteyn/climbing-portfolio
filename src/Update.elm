@@ -107,7 +107,11 @@ update msg model =
                             { model | ascents = Dict.insert newAscent.id newAscent model.ascents, climbingRoutes = modifiedRoutes }
 
                         AreaItem ->
-                            Debug.todo "fix"
+                            let
+                                newArea =
+                                    areaFromForm model form
+                            in
+                            { model | areas = Dict.insert newArea.id newArea model.areas }
             in
             ( newModel, Cmd.none )
 
@@ -229,3 +233,22 @@ ascentFromForm model form =
       }
     , modifiedRoutes
     )
+
+
+areaFromForm : Model -> ItemPageItemForm -> Data.Area
+areaFromForm model form =
+    let
+        newAreaId =
+            ItemPageUtilities.getNewIdFromFrom form model.areas
+
+        maybeName =
+            getCriteriumValueFromForm "name" form
+
+        maybeCountry =
+            getCriteriumValueFromForm "country" form
+    in
+    { id = newAreaId
+    , name = Maybe.withDefault "" maybeName
+    , country = Maybe.withDefault "" maybeCountry
+    , sectorIds = Nothing
+    }

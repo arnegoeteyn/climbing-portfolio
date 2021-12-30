@@ -152,7 +152,7 @@ areaForm : ItemPageItemForm
 areaForm =
     { criteria =
         Dict.fromList
-            [ ( "name", { value = "", label = "name", type_ = Model.Enumeration } )
+            [ ( "name", { value = "", label = "name", type_ = Model.String } )
             , ( "country", { value = "", label = "country", type_ = Model.String } )
             ]
     , order = [ "name", "country" ]
