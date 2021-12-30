@@ -6,7 +6,7 @@
             "name": "glaspatronenmatch",
             "grade": "8a",
             "description": "heel leuk",
-            "kind": "lead",
+            "kind": "sport",
             "ascentIds": [
                 1,
                 2
@@ -17,7 +17,7 @@
             "name": "nirvana",
             "grade": "7c",
             "description": "cava wel",
-            "kind": "lead"
+            "kind": "sport"
         },
         {
             "id": 3,

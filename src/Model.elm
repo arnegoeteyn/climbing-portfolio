@@ -55,7 +55,7 @@ type FormState
 type CriteriumType
     = String
     | Date
-    | Enumeration
+    | Enumeration (List String)
 
 
 type alias Criterium =

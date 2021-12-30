@@ -96,12 +96,13 @@ climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria =
         Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
             , ( "name", { value = "", label = "name", type_ = Model.String } )
             , ( "grade", { value = "", label = "grade", type_ = Model.String } )
             , ( "description", { value = "", label = "description", type_ = Model.String } )
+            , ( "kind", { value = "", label = "kind", type_ = Model.Enumeration [ "sport", "boulder" ] } )
             ]
-    , order = [ "name", "grade", "description" ]
+    , order = [ "name", "grade", "kind", "description" ]
     , parentId = Nothing
     , formState = Hidden
     }
@@ -111,7 +112,7 @@ ascentForm : ItemPageItemForm
 ascentForm =
     { criteria =
         Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
             , ( "date", { value = "", label = "date", type_ = Model.Date } )
             , ( "description", { value = "", label = "description", type_ = Model.String } )
             ]
@@ -132,7 +133,7 @@ sectorForm : ItemPageItemForm
 sectorForm =
     { criteria =
         Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration } )
+            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
             , ( "name", { value = "", label = "name", type_ = Model.String } )
             ]
     , order = [ "name" ]

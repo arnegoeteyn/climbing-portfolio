@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (Sector, encodedJsonFile, jsonFileDecoder)
+import Data exposing (ClimbingRouteKind(..), Sector, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
 import Date
 import DatePicker
 import Dict exposing (Dict)
@@ -177,11 +177,10 @@ deleteArea model ids =
             Dict.filter (\_ value -> not <| Set.member value.id ids) model.areas
 
         sectorIds =
-            Debug.log "test" <|
-                Set.foldl
-                    (\id curr -> Set.union curr (Dict.get id model.areas |> Maybe.andThen .sectorIds |> Maybe.withDefault Set.empty))
-                    Set.empty
-                    ids
+            Set.foldl
+                (\id curr -> Set.union curr (Dict.get id model.areas |> Maybe.andThen .sectorIds |> Maybe.withDefault Set.empty))
+                Set.empty
+                ids
 
         sectorsUpdate =
             deleteSector model sectorIds
@@ -249,6 +248,9 @@ climbingRouteFromForm model form =
         maybeSector =
             ItemPageUtilities.getParentFromForm form model.sectors
 
+        maybeKind =
+            getCriteriumValueFromForm "kind" form
+
         modifiedSectors =
             ItemPageUtilities.modifiedParentCollection newRouteId
                 maybeSector
@@ -271,6 +273,16 @@ climbingRouteFromForm model form =
       , grade = Maybe.withDefault "" maybeGrade
       , description = maybeDescription
       , ascentIds = Just Set.empty
+      , kind =
+            case Maybe.withDefault "" maybeKind |> String.toLower of
+                "sport" ->
+                    Sport
+
+                "boulder" ->
+                    Boulder
+
+                _ ->
+                    Debug.todo "error handling"
       }
     , modifiedSectors
     )

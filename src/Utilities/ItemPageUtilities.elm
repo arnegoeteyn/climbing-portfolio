@@ -1,6 +1,6 @@
 module Utilities.ItemPageUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ItemPageItem, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector)
 import Dict exposing (Dict)
 import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
 import Message exposing (Item(..), ItemRelation)
@@ -139,10 +139,22 @@ toClimbingRouteItem _ climbingRoute =
 toClimbingRouteFormCriteria : ClimbingRoute -> Dict String Criterium
 toClimbingRouteFormCriteria route =
     Dict.fromList
-        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "name", { value = route.name, label = "name", type_ = Model.String } )
         , ( "grade", { value = route.grade, label = "grade", type_ = Model.String } )
         , ( "description", { value = Maybe.withDefault "" route.description, label = "description", type_ = Model.String } )
+        , ( "kind"
+          , { value =
+                case route.kind of
+                    Sport ->
+                        "sport"
+
+                    Boulder ->
+                        "boulder"
+            , label = "kind"
+            , type_ = Model.Enumeration [ "sport", "boulder" ]
+            }
+          )
         ]
 
 
@@ -160,7 +172,7 @@ toSectorItem _ sector =
 toSectorFormCriteria : Sector -> Dict String Criterium
 toSectorFormCriteria sector =
     Dict.fromList
-        [ ( "_parentId", { value = sector.areaId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        [ ( "_parentId", { value = sector.areaId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "name", { value = sector.name, label = "name", type_ = Model.String } )
         ]
 
@@ -198,7 +210,7 @@ toAscentItem _ ascent =
 toAscentFormCriteria : Ascent -> Dict String Criterium
 toAscentFormCriteria ascent =
     Dict.fromList
-        [ ( "_parentId", { value = ascent.routeId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration } )
+        [ ( "_parentId", { value = ascent.routeId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "description", { value = Maybe.withDefault "" ascent.description, label = "description", type_ = Model.String } )
         , ( "date", { value = Maybe.withDefault "" ascent.date, label = "date", type_ = Model.Date } )
         ]

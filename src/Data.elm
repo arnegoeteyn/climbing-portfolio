@@ -63,6 +63,39 @@ encodedJsonFile root =
         ]
 
 
+type ClimbingRouteKind
+    = Boulder
+    | Sport
+
+
+climbingRouteKindDecoder : Json.Decode.Decoder ClimbingRouteKind
+climbingRouteKindDecoder =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\str ->
+                case String.toLower str of
+                    "sport" ->
+                        Json.Decode.succeed Sport
+
+                    "boulder" ->
+                        Json.Decode.succeed Boulder
+
+                    _ ->
+                        Json.Decode.fail "invalid routeKind"
+            )
+
+
+encodeClimbingRouteKind : ClimbingRouteKind -> Json.Encode.Value
+encodeClimbingRouteKind kind =
+    Json.Encode.string <|
+        case kind of
+            Sport ->
+                "sport"
+
+            Boulder ->
+                "boulder"
+
+
 type alias ClimbingRoute =
     { id : Int
     , sectorId : Maybe Int
@@ -70,6 +103,7 @@ type alias ClimbingRoute =
     , grade : String
     , description : Maybe String
     , ascentIds : Maybe (Set Int)
+    , kind : ClimbingRouteKind
     }
 
 
@@ -82,6 +116,7 @@ climbingRouteDecoder =
         |> required "grade" string
         |> optional "description" (Json.Decode.map Just string) Nothing
         |> optional "ascentIds" (Json.Decode.map Just (set int)) Nothing
+        |> required "kind" climbingRouteKindDecoder
 
 
 encodeClimbingRoute : ClimbingRoute -> Json.Encode.Value
@@ -93,6 +128,7 @@ encodeClimbingRoute route =
         , ( "grade", Json.Encode.string route.grade )
         , ( "description", encodeNullable Json.Encode.string route.description )
         , ( "ascentIds", encodeNullable (Json.Encode.set Json.Encode.int) route.ascentIds )
+        , ( "kind", encodeClimbingRouteKind route.kind )
         ]
 
 

@@ -34,8 +34,21 @@ viewItemForm itemPageModel model =
                         Model.String ->
                             viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
 
-                        Model.Enumeration ->
-                            text "not yet implemented"
+                        Model.Enumeration options ->
+                            select
+                                [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
+                                ]
+                            <|
+                                (options
+                                    |> List.map
+                                        (\item ->
+                                            option
+                                                [ value item
+                                                , Html.Styled.Attributes.selected <| item == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get key itemPageModel.form.criteria)
+                                                ]
+                                                [ text item ]
+                                        )
+                                )
 
                         Model.Date ->
                             DatePicker.view
