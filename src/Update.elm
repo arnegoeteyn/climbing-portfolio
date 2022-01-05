@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (ClimbingRouteKind(..), Sector, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
+import Data exposing (AscentKind(..), ClimbingRouteKind(..), Sector, ascentKindDecoder, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
 import Date
 import DatePicker
 import Dict exposing (Dict)
@@ -273,16 +273,7 @@ climbingRouteFromForm model form =
       , grade = Maybe.withDefault "" maybeGrade
       , description = maybeDescription
       , ascentIds = Just Set.empty
-      , kind =
-            case Maybe.withDefault "" maybeKind |> String.toLower of
-                "sport" ->
-                    Sport
-
-                "boulder" ->
-                    Boulder
-
-                _ ->
-                    Debug.todo "error handling"
+      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString climbingRouteKindDecoder) maybeKind |> Maybe.withDefault Sport
       }
     , modifiedSectors
     )
@@ -337,11 +328,15 @@ ascentFromForm model form =
 
         maybeDate =
             getCriteriumValueFromForm "date" form
+
+        maybeKind =
+            getCriteriumValueFromForm "kind" form
     in
     ( { id = newAscentId
       , description = maybeDescription
       , date = maybeDate
       , routeId = Maybe.map .id maybeRoute
+      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString ascentKindDecoder) maybeKind |> Maybe.withDefault Redpoint
       }
     , modifiedRoutes
     )

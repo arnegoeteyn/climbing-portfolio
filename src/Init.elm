@@ -105,7 +105,7 @@ climbingRouteForm =
 ascentForm : ItemPageItemForm
 ascentForm =
     { criteria = ItemFormUtilities.toAscentFormCriteria Nothing
-    , order = [ "date", "description" ]
+    , order = [ "date", "description", "kind" ]
     , parentId = Nothing
     , formState = Hidden
     }

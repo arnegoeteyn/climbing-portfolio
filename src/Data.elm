@@ -4,8 +4,9 @@ import Dict exposing (Dict)
 import Json.Decode exposing (int, list, string)
 import Json.Decode.Extra exposing (set)
 import Json.Decode.Pipeline exposing (optional, required)
-import Json.Encode
+import Json.Encode exposing (encode)
 import Set exposing (Set)
+import Svg.Styled.Attributes exposing (ascent)
 import Utilities exposing (encodeNullable)
 
 
@@ -85,15 +86,18 @@ climbingRouteKindDecoder =
             )
 
 
-encodeClimbingRouteKind : ClimbingRouteKind -> Json.Encode.Value
-encodeClimbingRouteKind kind =
-    Json.Encode.string <|
-        case kind of
-            Sport ->
-                "sport"
+climbingRouteKindToString kind =
+    case kind of
+        Sport ->
+            "sport"
 
-            Boulder ->
-                "boulder"
+        Boulder ->
+            "boulder"
+
+
+encodeClimbingRouteKind : ClimbingRouteKind -> Json.Encode.Value
+encodeClimbingRouteKind =
+    Json.Encode.string << climbingRouteKindToString
 
 
 type alias ClimbingRoute =
@@ -137,6 +141,7 @@ type alias Ascent =
     , routeId : Maybe Int
     , date : Maybe String
     , description : Maybe String
+    , kind : AscentKind
     }
 
 
@@ -148,6 +153,55 @@ type AscentKind
     | Repeat
 
 
+ascentKindDecoder : Json.Decode.Decoder AscentKind
+ascentKindDecoder =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\str ->
+                case String.toLower str of
+                    "onsight" ->
+                        Json.Decode.succeed Onsight
+
+                    "redpoint" ->
+                        Json.Decode.succeed Redpoint
+
+                    "flash" ->
+                        Json.Decode.succeed Flash
+
+                    "repeat" ->
+                        Json.Decode.succeed Repeat
+
+                    "secondgo" ->
+                        Json.Decode.succeed SecondGo
+
+                    _ ->
+                        Json.Decode.fail "invalid routeKind"
+            )
+
+
+encodeAscentKind : AscentKind -> Json.Encode.Value
+encodeAscentKind =
+    Json.Encode.string << ascentKindToString
+
+
+ascentKindToString kind =
+    case kind of
+        Redpoint ->
+            "redpoint"
+
+        Flash ->
+            "flash"
+
+        Onsight ->
+            "onsight"
+
+        SecondGo ->
+            "secondgo"
+
+        Repeat ->
+            "repeat"
+
+
 ascentsDecoder : Json.Decode.Decoder Ascent
 ascentsDecoder =
     Json.Decode.succeed Ascent
@@ -155,6 +209,7 @@ ascentsDecoder =
         |> optional "routeId" (Json.Decode.map Just int) Nothing
         |> optional "date" (Json.Decode.map Just string) Nothing
         |> optional "description" (Json.Decode.map Just string) Nothing
+        |> required "kind" ascentKindDecoder
 
 
 encodeAscent : Ascent -> Json.Encode.Value
@@ -164,6 +219,7 @@ encodeAscent ascent =
         , ( "routeId", encodeNullable Json.Encode.int ascent.routeId )
         , ( "description", encodeNullable Json.Encode.string ascent.description )
         , ( "date", encodeNullable Json.Encode.string ascent.date )
+        , ( "kind", encodeAscentKind ascent.kind )
         ]
 
 

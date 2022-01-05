@@ -1,8 +1,7 @@
 module Utilities.ItemFormUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString, encodeClimbingRouteKind)
 import Dict exposing (Dict)
-import Json.Decode exposing (maybe)
 import Model exposing (Criterium)
 import Utilities exposing (maybeAccessor)
 
@@ -21,16 +20,7 @@ toClimbingRouteFormCriteria maybeClimbingRoute =
         , ( "kind"
           , { value =
                 maybeAccessor
-                    (.kind
-                        >> (\x ->
-                                case x of
-                                    Sport ->
-                                        "sport"
-
-                                    Boulder ->
-                                        "boulder"
-                           )
-                    )
+                    (.kind >> climbingRouteKindToString)
                     maybeClimbingRoute
             , label = "kind"
             , type_ = Model.Enumeration [ "sport", "boulder" ]
@@ -61,4 +51,13 @@ toAscentFormCriteria maybeAscent =
         [ ( "_parentId", { value = parentIdAccessor .routeId maybeAscent, label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "description", { value = maybeAccessor (.description >> Maybe.withDefault "") maybeAscent, label = "description", type_ = Model.String } )
         , ( "date", { value = maybeAccessor (.date >> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
+        , ( "kind"
+          , { value =
+                maybeAccessor
+                    (.kind >> ascentKindToString)
+                    maybeAscent
+            , label = "kind"
+            , type_ = Model.Enumeration [ "redpoint", "flash", "onsight", "secondgo", "repeat" ]
+            }
+          )
         ]
