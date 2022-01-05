@@ -10,6 +10,7 @@ import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg(..), 
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
+import Utilities.ItemFormUtilities as ItemFormUtilities
 
 
 init : String -> Url -> Key -> ( Model, Cmd Msg )
@@ -94,14 +95,7 @@ climbingRouteRelations =
 
 climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
-    { criteria =
-        Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
-            , ( "name", { value = "", label = "name", type_ = Model.String } )
-            , ( "grade", { value = "", label = "grade", type_ = Model.String } )
-            , ( "description", { value = "", label = "description", type_ = Model.String } )
-            , ( "kind", { value = "", label = "kind", type_ = Model.Enumeration [ "sport", "boulder" ] } )
-            ]
+    { criteria = ItemFormUtilities.toClimbingRouteFormCriteria Nothing
     , order = [ "name", "grade", "kind", "description" ]
     , parentId = Nothing
     , formState = Hidden
@@ -110,12 +104,7 @@ climbingRouteForm =
 
 ascentForm : ItemPageItemForm
 ascentForm =
-    { criteria =
-        Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
-            , ( "date", { value = "", label = "date", type_ = Model.Date } )
-            , ( "description", { value = "", label = "description", type_ = Model.String } )
-            ]
+    { criteria = ItemFormUtilities.toAscentFormCriteria Nothing
     , order = [ "date", "description" ]
     , parentId = Nothing
     , formState = Hidden
@@ -131,11 +120,7 @@ ascentRelations =
 
 sectorForm : ItemPageItemForm
 sectorForm =
-    { criteria =
-        Dict.fromList
-            [ ( "_parentId", { value = "", label = "_parentId", type_ = Model.Enumeration [] } )
-            , ( "name", { value = "", label = "name", type_ = Model.String } )
-            ]
+    { criteria = ItemFormUtilities.toSectorFormCriteria Nothing
     , order = [ "name" ]
     , parentId = Nothing
     , formState = Hidden
@@ -151,11 +136,7 @@ sectorRelations =
 
 areaForm : ItemPageItemForm
 areaForm =
-    { criteria =
-        Dict.fromList
-            [ ( "name", { value = "", label = "name", type_ = Model.String } )
-            , ( "country", { value = "", label = "country", type_ = Model.String } )
-            ]
+    { criteria = ItemFormUtilities.toAreaFormCriteria Nothing
     , order = [ "name", "country" ]
     , parentId = Nothing
     , formState = Hidden

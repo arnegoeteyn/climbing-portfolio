@@ -7,6 +7,7 @@ import Message exposing (Item(..), ItemRelation)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 import Set
 import Utilities exposing (newId)
+import Utilities.ItemFormUtilities as ItemFormUtilities
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -59,23 +60,22 @@ getRelationFromItem item =
 
 getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
 getCriteriaFromItem requestId itemType model =
-    Maybe.withDefault Dict.empty <|
-        case itemType of
-            ClimbingRouteItem ->
-                Dict.get requestId model.climbingRoutes
-                    |> Maybe.map toClimbingRouteFormCriteria
+    case itemType of
+        ClimbingRouteItem ->
+            Dict.get requestId model.climbingRoutes
+                |> ItemFormUtilities.toClimbingRouteFormCriteria
 
-            AscentItem ->
-                Dict.get requestId model.ascents
-                    |> Maybe.map toAscentFormCriteria
+        AscentItem ->
+            Dict.get requestId model.ascents
+                |> ItemFormUtilities.toAscentFormCriteria
 
-            AreaItem ->
-                Dict.get requestId model.areas
-                    |> Maybe.map toAreaFormCriteria
+        AreaItem ->
+            Dict.get requestId model.areas
+                |> ItemFormUtilities.toAreaFormCriteria
 
-            SectorItem ->
-                Dict.get requestId model.sectors
-                    |> Maybe.map toSectorFormCriteria
+        SectorItem ->
+            Dict.get requestId model.sectors
+                |> ItemFormUtilities.toSectorFormCriteria
 
 
 getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
@@ -136,28 +136,6 @@ toClimbingRouteItem _ climbingRoute =
     }
 
 
-toClimbingRouteFormCriteria : ClimbingRoute -> Dict String Criterium
-toClimbingRouteFormCriteria route =
-    Dict.fromList
-        [ ( "_parentId", { value = route.sectorId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
-        , ( "name", { value = route.name, label = "name", type_ = Model.String } )
-        , ( "grade", { value = route.grade, label = "grade", type_ = Model.String } )
-        , ( "description", { value = Maybe.withDefault "" route.description, label = "description", type_ = Model.String } )
-        , ( "kind"
-          , { value =
-                case route.kind of
-                    Sport ->
-                        "sport"
-
-                    Boulder ->
-                        "boulder"
-            , label = "kind"
-            , type_ = Model.Enumeration [ "sport", "boulder" ]
-            }
-          )
-        ]
-
-
 toSectorItem : Int -> Sector -> ItemPageItem
 toSectorItem _ sector =
     { cardHeader = sector.name
@@ -167,14 +145,6 @@ toSectorItem _ sector =
     , parentId = sector.areaId
     , childIds = sector.routeIds
     }
-
-
-toSectorFormCriteria : Sector -> Dict String Criterium
-toSectorFormCriteria sector =
-    Dict.fromList
-        [ ( "_parentId", { value = sector.areaId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
-        , ( "name", { value = sector.name, label = "name", type_ = Model.String } )
-        ]
 
 
 toAreaItem : Int -> Area -> ItemPageItem
@@ -188,14 +158,6 @@ toAreaItem _ area =
     }
 
 
-toAreaFormCriteria : Area -> Dict String Criterium
-toAreaFormCriteria area =
-    Dict.fromList
-        [ ( "name", { value = area.name, label = "name", type_ = Model.String } )
-        , ( "country", { value = area.country, label = "country", type_ = Model.String } )
-        ]
-
-
 toAscentItem : Int -> Ascent -> ItemPageItem
 toAscentItem _ ascent =
     { cardHeader = Maybe.withDefault (String.fromInt ascent.id) ascent.date
@@ -205,12 +167,3 @@ toAscentItem _ ascent =
     , parentId = ascent.routeId
     , childIds = Nothing
     }
-
-
-toAscentFormCriteria : Ascent -> Dict String Criterium
-toAscentFormCriteria ascent =
-    Dict.fromList
-        [ ( "_parentId", { value = ascent.routeId |> Maybe.map String.fromInt |> Maybe.withDefault "", label = "_parentId", type_ = Model.Enumeration [] } )
-        , ( "description", { value = Maybe.withDefault "" ascent.description, label = "description", type_ = Model.String } )
-        , ( "date", { value = Maybe.withDefault "" ascent.date, label = "date", type_ = Model.Date } )
-        ]

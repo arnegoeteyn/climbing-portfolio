@@ -54,3 +54,8 @@ ifNot new maybe =
 
         Nothing ->
             new
+
+
+maybeAccessor : (a -> String) -> Maybe a -> String
+maybeAccessor accessor maybeValue =
+    Maybe.withDefault "" <| Maybe.map accessor maybeValue
