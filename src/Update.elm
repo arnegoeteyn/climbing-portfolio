@@ -203,7 +203,7 @@ deleteSector model ids =
         climbingRouteUpdate =
             deleteClimbingRoute model routeIds
     in
-    { areas = Dict.empty, sectors = newSectors, climbingRoutes = climbingRouteUpdate.climbingRoutes, ascents = climbingRouteUpdate.ascents }
+    { areas = model.areas, sectors = newSectors, climbingRoutes = climbingRouteUpdate.climbingRoutes, ascents = climbingRouteUpdate.ascents }
 
 
 deleteClimbingRoute : Model -> Set.Set Int -> ModelData
@@ -222,7 +222,7 @@ deleteClimbingRoute model ids =
             deleteAscent model
                 ascentIds
     in
-    { areas = Dict.empty, sectors = Dict.empty, climbingRoutes = newRoutes, ascents = ascentUpdate.ascents }
+    { areas = model.areas, sectors = model.sectors, climbingRoutes = newRoutes, ascents = ascentUpdate.ascents }
 
 
 deleteAscent : Model -> Set.Set Int -> ModelData
@@ -231,7 +231,7 @@ deleteAscent model ids =
         newAscents =
             Dict.filter (\_ value -> not <| Set.member value.id ids) model.ascents
     in
-    { areas = Dict.empty, sectors = Dict.empty, climbingRoutes = Dict.empty, ascents = newAscents }
+    { areas = model.areas, sectors = model.sectors, climbingRoutes = model.climbingRoutes, ascents = newAscents }
 
 
 getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
