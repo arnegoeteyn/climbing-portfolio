@@ -161,7 +161,7 @@ viewItemList items itemPageModel model =
                     in
                     Dict.foldl
                         (\key value acc ->
-                            acc && String.contains value (Maybe.withDefault "" <| Dict.get key tableValuesDict)
+                            acc && String.contains (String.toLower value) (String.toLower <| Maybe.withDefault "" <| Dict.get key tableValuesDict)
                         )
                         True
                         itemPageModel.filters
