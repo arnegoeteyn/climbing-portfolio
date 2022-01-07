@@ -1,3 +1,3 @@
 module.exports = {
-    homepage: "."
+    homepage: "https://climbing-portfolio.pages.dev/"
 }
