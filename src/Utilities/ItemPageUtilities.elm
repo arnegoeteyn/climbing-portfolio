@@ -184,19 +184,15 @@ toAscentItem model _ ascent =
             ascent.routeId
                 |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
                 |> Maybe.map .name
-                |> Maybe.map
-                    (\x ->
-                        x
-                            ++ "["
-                            ++ ascentKindToString ascent.kind
-                            ++ "]"
-                    )
                 |> Maybe.withDefault ""
+
+        dateAndKind =
+            Maybe.withDefault (String.fromInt ascent.id) ascent.date ++ " [" ++ ascentKindToString ascent.kind ++ "]"
     in
-    { cardHeader = Maybe.withDefault (String.fromInt ascent.id) ascent.date
-    , identifier = Maybe.withDefault (String.fromInt ascent.id) ascent.date ++ " ~ " ++ parentRouteName
+    { cardHeader = parentRouteName ++ " ~ " ++ dateAndKind
+    , identifier = dateAndKind
     , cardDescription = ascent.comment
-    , tableValues = [ ( "date", Maybe.withDefault "" ascent.date ), ( "kind", ascentKindToString ascent.kind ) ]
+    , tableValues = [ ( "date", Maybe.withDefault "" ascent.date ), ( "kind", ascentKindToString ascent.kind ), ( "route", parentRouteName ) ]
     , id = ascent.id
     , parentId = ascent.routeId
     , childIds = Nothing

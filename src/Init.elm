@@ -81,6 +81,7 @@ itemPageModel t =
     ( { form = form
       , itemType = t
       , selectedItemId = Nothing
+      , filters = Dict.empty
       }
     , Cmd.none
     )

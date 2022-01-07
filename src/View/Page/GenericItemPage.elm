@@ -5,7 +5,7 @@ import Date
 import DatePicker
 import Dict exposing (Dict(..))
 import Html
-import Html.Styled exposing (Html, button, div, li, option, select, table, td, text, tr, ul)
+import Html.Styled exposing (Html, button, div, h2, li, option, select, table, td, text, tr, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
@@ -151,17 +151,49 @@ viewItemList items itemPageModel model =
     let
         headers =
             (Dict.values >> List.head) items |> Maybe.map .tableValues |> Maybe.withDefault []
-    in
-    table [ Table.tableProperties ] <|
-        [ Html.Styled.thead [ Table.tableHeaderProperties ] <| List.map (\( header, _ ) -> td [] [ text header ]) headers
-        , Html.Styled.tbody [ Table.tableBodyProperties ] <|
-            List.map
+
+        filteredItems =
+            List.filter
                 (\item ->
-                    tr [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] <|
-                        List.map
-                            (\( _, value ) -> td [] [ text value ])
-                            item.tableValues
+                    let
+                        tableValuesDict =
+                            Dict.fromList <| item.tableValues
+                    in
+                    Dict.foldl
+                        (\key value acc ->
+                            acc && String.contains value (Maybe.withDefault "" <| Dict.get key tableValuesDict)
+                        )
+                        True
+                        itemPageModel.filters
                 )
-            <|
-                Dict.values items
+                (Dict.values items)
+    in
+    div []
+        [ h2 [] [ text <| String.fromInt (List.length filteredItems) ++ " items" ]
+        , table
+            [ Table.tableProperties ]
+          <|
+            [ Html.Styled.thead [ Table.tableHeaderProperties ] <| List.map (\( header, _ ) -> td [] [ text header ]) headers
+            , Html.Styled.thead [ Table.tableHeaderProperties ] <|
+                List.map
+                    (\( header, _ ) ->
+                        td []
+                            [ viewInput "text"
+                                header
+                                (Maybe.withDefault "" <| Dict.get header itemPageModel.filters)
+                                (\value -> ItemPage itemPageModel.itemType <| FilterUpdateMessage header value)
+                            ]
+                    )
+                    headers
+            , Html.Styled.tbody [ Table.tableBodyProperties ] <|
+                List.map
+                    (\item ->
+                        tr [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] <|
+                            List.map
+                                (\( _, value ) -> td [] [ text value ])
+                                item.tableValues
+                    )
+                <|
+                    filteredItems
+            ]
         ]

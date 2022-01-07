@@ -18,7 +18,3 @@ tableHeaderProperties =
 tableBodyProperties : Attribute msg
 tableBodyProperties =
     css [ Tw.text_sm, Tw.divide_y, Tw.divide_gray_100 ]
-
-
-
--- css [ Tw.px_5, Tw.py_4, Tw.border_b, Tw.border_gray_100 ]

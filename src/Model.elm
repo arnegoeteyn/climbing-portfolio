@@ -35,6 +35,7 @@ type alias ItemPageModel =
     { itemType : Item
     , form : ItemPageItemForm
     , selectedItemId : Maybe Int
+    , filters : Dict String String
     }
 
 

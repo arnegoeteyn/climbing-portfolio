@@ -72,7 +72,7 @@ view itemPageModel model =
                             []
                         , header [ cardHeaderTextTWProperties ] [ text <| item.cardHeader ]
                         , div [ cardContentTWProperties ]
-                            [ p [ cardAreaDescriptionTWProperties ] [ text <| (Maybe.map (\parent -> parent.identifier ++ " ~ Fontainebleau") maybeParent |> Maybe.withDefault "") ]
+                            [ p [ cardAreaDescriptionTWProperties ] [ text <| (Maybe.map (\parent -> parent.identifier) maybeParent |> Maybe.withDefault "") ]
                             , p [ cardDescriptionTWProperties ] [ text <| Maybe.withDefault "" item.cardDescription ]
                             , viewChildren item itemPageModel.itemType model
                             ]
@@ -96,14 +96,13 @@ viewChildren itemPageItem item model =
                     ItemPageUtilities.getDataFromItem childItemType model
 
                 children =
-                    List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
+                    List.sortBy .identifier <| List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
 
                 viewChild child =
                     div [] [ text child.identifier ]
             in
             div []
-                [ text <| String.fromInt (List.length children) ++ " children!"
-                , div [] <| List.map viewChild children
+                [ div [] <| List.map viewChild children
                 ]
 
         Nothing ->

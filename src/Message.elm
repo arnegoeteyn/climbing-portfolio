@@ -55,6 +55,7 @@ type ItemPageMsg
     | UpdateItem Int
     | SelectItem Int
     | FormUpdateMessage CriteriumUpdate
+    | FilterUpdateMessage String String
 
 
 type CriteriumUpdate

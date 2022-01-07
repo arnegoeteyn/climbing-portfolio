@@ -46,6 +46,9 @@ update msg item model =
                 SelectItem id ->
                     { itemPageModel | selectedItemId = Just id }
 
+                FilterUpdateMessage key value ->
+                    { itemPageModel | filters = Dict.insert key value itemPageModel.filters }
+
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
                         form =
