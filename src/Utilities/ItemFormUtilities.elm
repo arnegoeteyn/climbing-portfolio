@@ -16,7 +16,7 @@ toClimbingRouteFormCriteria maybeClimbingRoute =
         [ ( "_parentId", { value = parentIdAccessor .sectorId maybeClimbingRoute, label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "name", { value = maybeAccessor .name maybeClimbingRoute, label = "name", type_ = Model.String } )
         , ( "grade", { value = maybeAccessor .grade maybeClimbingRoute, label = "grade", type_ = Model.String } )
-        , ( "description", { value = maybeAccessor (.description >> Maybe.withDefault "") maybeClimbingRoute, label = "description", type_ = Model.String } )
+        , ( "comment", { value = maybeAccessor (.comment >> Maybe.withDefault "") maybeClimbingRoute, label = "comment", type_ = Model.String } )
         , ( "kind"
           , { value =
                 maybeAccessor
@@ -49,7 +49,7 @@ toAscentFormCriteria : Maybe Ascent -> Dict String Criterium
 toAscentFormCriteria maybeAscent =
     Dict.fromList
         [ ( "_parentId", { value = parentIdAccessor .routeId maybeAscent, label = "_parentId", type_ = Model.Enumeration [] } )
-        , ( "description", { value = maybeAccessor (.description >> Maybe.withDefault "") maybeAscent, label = "description", type_ = Model.String } )
+        , ( "comment", { value = maybeAccessor (.comment >> Maybe.withDefault "") maybeAscent, label = "comment", type_ = Model.String } )
         , ( "date", { value = maybeAccessor (.date >> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
         , ( "kind"
           , { value =

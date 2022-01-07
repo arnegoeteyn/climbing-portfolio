@@ -1,10 +1,10 @@
 module Data exposing (..)
 
 import Dict exposing (Dict)
-import Json.Decode exposing (int, list, string)
+import Json.Decode exposing (int, string)
 import Json.Decode.Extra exposing (set)
 import Json.Decode.Pipeline exposing (optional, required)
-import Json.Encode exposing (encode)
+import Json.Encode
 import Set exposing (Set)
 import Svg.Styled.Attributes exposing (ascent)
 import Utilities exposing (encodeNullable)
@@ -14,6 +14,7 @@ type alias ItemPageItem =
     { cardHeader : String
     , identifier : String
     , cardDescription : Maybe String
+    , tableValues : List ( String, String )
     , id : Int
     , parentId : Maybe Int
     , childIds : Maybe (Set Int)
@@ -105,7 +106,7 @@ type alias ClimbingRoute =
     , sectorId : Maybe Int
     , name : String
     , grade : String
-    , description : Maybe String
+    , comment : Maybe String
     , ascentIds : Maybe (Set Int)
     , kind : ClimbingRouteKind
     }
@@ -118,7 +119,7 @@ climbingRouteDecoder =
         |> optional "sectorId" (Json.Decode.map Just int) Nothing
         |> required "name" string
         |> required "grade" string
-        |> optional "description" (Json.Decode.map Just string) Nothing
+        |> optional "comment" (Json.Decode.map Just string) Nothing
         |> optional "ascentIds" (Json.Decode.map Just (set int)) Nothing
         |> required "kind" climbingRouteKindDecoder
 
@@ -130,7 +131,7 @@ encodeClimbingRoute route =
         , ( "sectorId", encodeNullable Json.Encode.int route.sectorId )
         , ( "name", Json.Encode.string route.name )
         , ( "grade", Json.Encode.string route.grade )
-        , ( "description", encodeNullable Json.Encode.string route.description )
+        , ( "comment", encodeNullable Json.Encode.string route.comment )
         , ( "ascentIds", encodeNullable (Json.Encode.set Json.Encode.int) route.ascentIds )
         , ( "kind", encodeClimbingRouteKind route.kind )
         ]
@@ -140,7 +141,7 @@ type alias Ascent =
     { id : Int
     , routeId : Maybe Int
     , date : Maybe String
-    , description : Maybe String
+    , comment : Maybe String
     , kind : AscentKind
     }
 
@@ -208,7 +209,7 @@ ascentsDecoder =
         |> required "id" int
         |> optional "routeId" (Json.Decode.map Just int) Nothing
         |> optional "date" (Json.Decode.map Just string) Nothing
-        |> optional "description" (Json.Decode.map Just string) Nothing
+        |> optional "comment" (Json.Decode.map Just string) Nothing
         |> required "kind" ascentKindDecoder
 
 
@@ -217,7 +218,7 @@ encodeAscent ascent =
     Json.Encode.object
         [ ( "id", Json.Encode.int ascent.id )
         , ( "routeId", encodeNullable Json.Encode.int ascent.routeId )
-        , ( "description", encodeNullable Json.Encode.string ascent.description )
+        , ( "comment", encodeNullable Json.Encode.string ascent.comment )
         , ( "date", encodeNullable Json.Encode.string ascent.date )
         , ( "kind", encodeAscentKind ascent.kind )
         ]

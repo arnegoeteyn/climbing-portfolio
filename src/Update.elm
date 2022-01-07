@@ -264,14 +264,14 @@ climbingRouteFromForm model form =
         maybeGrade =
             getCriteriumValueFromForm "grade" form
 
-        maybeDescription =
-            getCriteriumValueFromForm "description" form
+        maybeComment =
+            getCriteriumValueFromForm "comment" form
     in
     ( { id = newRouteId
       , sectorId = Maybe.map .id maybeSector
       , name = Maybe.withDefault "" maybeName
       , grade = Maybe.withDefault "" maybeGrade
-      , description = maybeDescription
+      , comment = maybeComment
       , ascentIds = Just Set.empty
       , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString climbingRouteKindDecoder) maybeKind |> Maybe.withDefault Sport
       }
@@ -323,8 +323,8 @@ ascentFromForm model form =
                 (\newIds route -> { route | ascentIds = newIds })
                 model.climbingRoutes
 
-        maybeDescription =
-            getCriteriumValueFromForm "description" form
+        maybeComment =
+            getCriteriumValueFromForm "comment" form
 
         maybeDate =
             getCriteriumValueFromForm "date" form
@@ -333,7 +333,7 @@ ascentFromForm model form =
             getCriteriumValueFromForm "kind" form
     in
     ( { id = newAscentId
-      , description = maybeDescription
+      , comment = maybeComment
       , date = maybeDate
       , routeId = Maybe.map .id maybeRoute
       , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString ascentKindDecoder) maybeKind |> Maybe.withDefault Redpoint

@@ -1,8 +1,8 @@
 module Utilities.ItemPageUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Init exposing (areaForm, ascentForm, climbingRouteForm, sectorForm)
+import Init
 import Message exposing (Item(..), ItemRelation)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 import Set
@@ -33,7 +33,7 @@ getDataFromItem item model =
             Dict.map toClimbingRouteItem model.climbingRoutes
 
         AscentItem ->
-            Dict.map toAscentItem model.ascents
+            Dict.map (toAscentItem model) model.ascents
 
         SectorItem ->
             Dict.map toSectorItem model.sectors
@@ -56,6 +56,22 @@ getRelationFromItem item =
 
         AreaItem ->
             Init.areaRelations
+
+
+itemPageTableHeaders : Item -> List String
+itemPageTableHeaders item =
+    case item of
+        ClimbingRouteItem ->
+            [ "name", "grade", "kind" ]
+
+        AscentItem ->
+            [ "date", "kind" ]
+
+        SectorItem ->
+            [ "name" ]
+
+        AreaItem ->
+            [ "name", "country" ]
 
 
 getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
@@ -129,7 +145,8 @@ toClimbingRouteItem _ climbingRoute =
         List.foldr (++) "" <|
             [ climbingRoute.name, " [", climbingRoute.grade, "]" ]
     , identifier = climbingRoute.name
-    , cardDescription = climbingRoute.description
+    , cardDescription = climbingRoute.comment
+    , tableValues = [ ( "name", climbingRoute.name ), ( "grade", climbingRoute.grade ), ( "kind", climbingRouteKindToString climbingRoute.kind ) ]
     , id = climbingRoute.id
     , parentId = climbingRoute.sectorId
     , childIds = climbingRoute.ascentIds
@@ -141,6 +158,7 @@ toSectorItem _ sector =
     { cardHeader = sector.name
     , identifier = sector.name
     , id = sector.id
+    , tableValues = [ ( "name", sector.name ) ]
     , cardDescription = Nothing
     , parentId = sector.areaId
     , childIds = sector.routeIds
@@ -152,17 +170,33 @@ toAreaItem _ area =
     { cardHeader = area.name
     , identifier = area.name
     , id = area.id
+    , tableValues = [ ( "name", area.name ), ( "country", area.country ) ]
     , cardDescription = Just area.country
     , parentId = Nothing
     , childIds = area.sectorIds
     }
 
 
-toAscentItem : Int -> Ascent -> ItemPageItem
-toAscentItem _ ascent =
+toAscentItem : Model -> Int -> Ascent -> ItemPageItem
+toAscentItem model _ ascent =
+    let
+        parentRouteName =
+            ascent.routeId
+                |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
+                |> Maybe.map .name
+                |> Maybe.map
+                    (\x ->
+                        x
+                            ++ "["
+                            ++ ascentKindToString ascent.kind
+                            ++ "]"
+                    )
+                |> Maybe.withDefault ""
+    in
     { cardHeader = Maybe.withDefault (String.fromInt ascent.id) ascent.date
-    , identifier = Maybe.withDefault (String.fromInt ascent.id) ascent.date
-    , cardDescription = ascent.description
+    , identifier = Maybe.withDefault (String.fromInt ascent.id) ascent.date ++ " ~ " ++ parentRouteName
+    , cardDescription = ascent.comment
+    , tableValues = [ ( "date", Maybe.withDefault "" ascent.date ), ( "kind", ascentKindToString ascent.kind ) ]
     , id = ascent.id
     , parentId = ascent.routeId
     , childIds = Nothing

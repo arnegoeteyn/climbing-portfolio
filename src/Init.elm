@@ -96,7 +96,7 @@ climbingRouteRelations =
 climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria = ItemFormUtilities.toClimbingRouteFormCriteria Nothing
-    , order = [ "name", "grade", "kind", "description" ]
+    , order = [ "name", "grade", "kind", "comment" ]
     , parentId = Nothing
     , formState = Hidden
     }
@@ -105,7 +105,7 @@ climbingRouteForm =
 ascentForm : ItemPageItemForm
 ascentForm =
     { criteria = ItemFormUtilities.toAscentFormCriteria Nothing
-    , order = [ "date", "description", "kind" ]
+    , order = [ "date", "comment", "kind" ]
     , parentId = Nothing
     , formState = Hidden
     }

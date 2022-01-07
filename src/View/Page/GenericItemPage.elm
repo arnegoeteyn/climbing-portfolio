@@ -5,7 +5,7 @@ import Date
 import DatePicker
 import Dict exposing (Dict(..))
 import Html
-import Html.Styled exposing (Html, button, div, li, option, select, text, ul)
+import Html.Styled exposing (Html, button, div, li, option, select, table, td, text, tr, ul)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
@@ -14,6 +14,7 @@ import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
 import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getDataFromItem)
+import View.Components.Table as Table
 import View.Widget.GenericItemCard as GenericItemCard
 
 
@@ -147,6 +148,20 @@ viewAddItemButton itemPageModel model =
 
 viewItemList : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
 viewItemList items itemPageModel model =
-    ul [] <|
-        List.map (\item -> li [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] [ text item.identifier ]) <|
-            Dict.values items
+    let
+        headers =
+            (Dict.values >> List.head) items |> Maybe.map .tableValues |> Maybe.withDefault []
+    in
+    table [ Table.tableProperties ] <|
+        [ Html.Styled.thead [ Table.tableHeaderProperties ] <| List.map (\( header, _ ) -> td [] [ text header ]) headers
+        , Html.Styled.tbody [ Table.tableBodyProperties ] <|
+            List.map
+                (\item ->
+                    tr [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] <|
+                        List.map
+                            (\( _, value ) -> td [] [ text value ])
+                            item.tableValues
+                )
+            <|
+                Dict.values items
+        ]
