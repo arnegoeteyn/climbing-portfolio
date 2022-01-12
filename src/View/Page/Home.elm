@@ -3,6 +3,7 @@ module View.Page.Home exposing (viewHome)
 import Array
 import Chart as C
 import Chart.Attributes as CA
+import Chart.Events as CE
 import Chart.Item as CI
 import Data exposing (ClimbingRouteKind)
 import Dict
@@ -48,17 +49,29 @@ routesPerGrade kind model =
     H.div [ A.css [ Tw.p_36 ] ] <|
         [ H.fromUnstyled <|
             C.chart
-                [ CA.height 300, CA.width 600 ]
+                [ CA.height 300
+                , CA.width 600
+                , CE.onMouseDown (Message.Home << Message.OnHover) (CE.getNearest CI.bars)
+                , CE.onMouseLeave (Message.Home << Message.OnHover <| [])
+                ]
                 [ C.eachBin <| \p bin -> [ C.label [ CA.moveDown 18 ] [ S.text <| Maybe.withDefault "" <| Array.get ((\x -> x - 1) <| round <| CI.getX <| CI.getMember bin) gradesValues ] (CI.getBottom p bin) ]
                 , C.yLabels [ CA.withGrid ]
                 , C.bars
                     []
                     [ C.bar .y []
+                        |> C.amongst model.homeModel.hovering (\_ -> [ CA.color "red" ])
                     ]
                   <|
                     List.indexedMap
-                        (\i v -> { x = toFloat i, y = Dict.get v grades |> Maybe.withDefault 0 |> toFloat })
+                        (\i v -> { x = toFloat i, y = Dict.get v grades |> Maybe.withDefault 0 |> toFloat, z = v })
                     <|
                         Array.toList gradesValues
+                , C.each model.homeModel.hovering <|
+                    \p bin ->
+                        [ C.tooltip bin
+                            []
+                            []
+                            [ H.toUnstyled <| H.text (CI.getData bin |> (\data -> data.z ++ " ~ " ++ String.fromFloat data.y)) ]
+                        ]
                 ]
         ]

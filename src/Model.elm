@@ -1,6 +1,7 @@
 module Model exposing (..)
 
 import Browser.Navigation exposing (Key)
+import Chart.Item as CI
 import Data exposing (Area, Ascent, ClimbingRoute, Sector)
 import Date exposing (Date)
 import DatePicker
@@ -18,6 +19,7 @@ type alias Model =
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
     , areas : Dict Int Area
+    , homeModel : HomeModel
     , climbingRoutesModel : ItemPageModel
     , sectorsModel : ItemPageModel
     , ascentsModel : ItemPageModel
@@ -36,6 +38,11 @@ type alias ItemPageModel =
     , form : ItemPageItemForm
     , selectedItemId : Maybe Int
     , filters : Dict String String
+    }
+
+
+type alias HomeModel =
+    { hovering : List (CI.One { x : Float, y : Float, z : String } CI.Bar)
     }
 
 

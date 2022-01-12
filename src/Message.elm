@@ -1,6 +1,7 @@
 module Message exposing (..)
 
 import Browser
+import Chart.Item as CI
 import DatePicker
 import File exposing (File)
 import Url exposing (Url)
@@ -46,7 +47,7 @@ type Msg
 
 
 type HomeMsg
-    = None
+    = OnHover (List (CI.One { x : Float, y : Float, z : String } CI.Bar))
 
 
 type ItemPageMsg
