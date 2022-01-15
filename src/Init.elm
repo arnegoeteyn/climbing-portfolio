@@ -52,6 +52,7 @@ init storageCache url key =
       , sectors = jsonFile.sectors
       , areas = jsonFile.areas
       , climbingRoutesModel = climbingRoutesModel
+      , homeModel = { hovering = [] }
       , sectorsModel = sectorsModel
       , ascentsModel = ascentsModel
       , areasModel = areasModel

@@ -16,6 +16,7 @@ import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
 import Set
 import Task
+import Update.Home
 import Update.ItemPage
 import Url
 import Utilities.ItemPageUtilities as ItemPageUtilities
@@ -72,7 +73,7 @@ update msg model =
             ( model, File.Download.string "result.json" "application/json" result )
 
         Home homeMsg ->
-            ( model, Cmd.none )
+            Update.Home.update homeMsg model
 
         DeleteItem item id ->
             let
