@@ -39,7 +39,6 @@ routesPerGrade kind model =
                             acc
                     )
                     Dict.empty
-                |> Debug.log "grades"
 
         gradesValues =
             grades
