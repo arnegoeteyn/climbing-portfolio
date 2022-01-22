@@ -10,7 +10,7 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString)
+import Json.Decode exposing (decodeString, maybe)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
@@ -32,18 +32,8 @@ update msg model =
             let
                 parsedUrl =
                     parseUrl url
-
-                ( newModel, newCmd ) =
-                    case parsedUrl of
-                        Message.RoutesRoute maybeClimbingRoute ->
-                            maybeClimbingRoute
-                                |> Maybe.map (\item -> Update.ItemPage.update (SelectItem item) ClimbingRouteItem model)
-                                |> Maybe.withDefault ( model, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
             in
-            ( { newModel | route = parsedUrl, url = url }, Cmd.none )
+            ( { model | route = parsedUrl, url = url }, Cmd.none )
 
         ClickedLink urlRequest ->
             case urlRequest of

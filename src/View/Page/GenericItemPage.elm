@@ -6,7 +6,7 @@ import DatePicker
 import Dict exposing (Dict(..))
 import Html
 import Html.Styled exposing (Html, button, div, h2, li, option, select, table, td, text, tr, ul)
-import Html.Styled.Attributes exposing (value)
+import Html.Styled.Attributes exposing (href, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
@@ -188,7 +188,11 @@ viewItemList items itemPageModel model =
             , Html.Styled.tbody [ Table.tableBodyProperties ] <|
                 List.map
                     (\item ->
-                        tr [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] <|
+                        tr
+                            [ href <| ItemPageUtilities.urlToItem itemPageModel.itemType item.id
+                            , onClick <| ItemPage itemPageModel.itemType (SelectItem item.id)
+                            ]
+                        <|
                             List.map
                                 (\( _, value ) -> td [] [ text value ])
                                 item.tableValues

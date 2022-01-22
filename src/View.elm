@@ -36,10 +36,10 @@ viewHeader model =
         links =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
-                , navLink AscentsRoute { url = "/ascents", caption = "Ascents" }
+                , navLink (AscentsRoute Nothing) { url = "/ascents", caption = "Ascents" }
                 , navLink (RoutesRoute Nothing) { url = "/routes", caption = "Routes" }
-                , navLink SectorsRoute { url = "/sectors", caption = "Sectors" }
-                , navLink AreasRoute { url = "/areas", caption = "Areas" }
+                , navLink (SectorsRoute Nothing) { url = "/sectors", caption = "Sectors" }
+                , navLink (AreasRoute Nothing) { url = "/areas", caption = "Areas" }
                 ]
 
         navAttributes =
@@ -89,13 +89,13 @@ viewPage model =
             RoutesRoute _ ->
                 GenericItemPage.viewItemPage ClimbingRouteItem model
 
-            AscentsRoute ->
+            AscentsRoute _ ->
                 GenericItemPage.viewItemPage AscentItem model
 
-            SectorsRoute ->
+            SectorsRoute _ ->
                 GenericItemPage.viewItemPage SectorItem model
 
-            AreasRoute ->
+            AreasRoute _ ->
                 GenericItemPage.viewItemPage AreaItem model
 
             NotFoundRoute ->

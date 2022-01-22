@@ -6,6 +6,7 @@ import Init
 import Message exposing (Item(..), ItemRelation)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 import Set
+import Url.Builder
 import Utilities exposing (newId)
 import Utilities.ItemFormUtilities as ItemFormUtilities
 
@@ -132,7 +133,6 @@ modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCo
         modifiedCollection =
             maybeParent
                 |> Maybe.map (updateChildIds <| Just newChildIds)
-                -- (\parent -> { parent | childAccessor = Just newChildIds })
                 |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
                 |> Maybe.withDefault parentCollection
     in
@@ -197,3 +197,23 @@ toAscentItem model _ ascent =
     , parentId = ascent.routeId
     , childIds = Nothing
     }
+
+
+urlToItem : Item -> Int -> String
+urlToItem t id =
+    let
+        prefix =
+            case t of
+                Message.AreaItem ->
+                    "areas"
+
+                Message.SectorItem ->
+                    "sectors"
+
+                Message.ClimbingRouteItem ->
+                    "routes"
+
+                Message.AscentItem ->
+                    "ascents"
+    in
+    Url.Builder.absolute [ prefix ] [ Url.Builder.int "selected" id ]

@@ -2,8 +2,8 @@ module View.Widget.GenericItemCard exposing (..)
 
 import Data exposing (ItemPageItem)
 import Dict
-import Html.Styled exposing (Html, button, div, footer, header, img, p, text)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
+import Html.Styled.Attributes exposing (css, href)
 import Html.Styled.Events exposing (onClick)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
@@ -99,7 +99,13 @@ viewChildren itemPageItem item model =
                     List.sortBy .identifier <| List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
 
                 viewChild child =
-                    div [] [ text child.identifier ]
+                    div []
+                        [ a
+                            [ onClick <| ItemPage childItemType (SelectItem child.id)
+                            , href <| ItemPageUtilities.urlToItem childItemType child.id
+                            ]
+                            [ text child.identifier ]
+                        ]
             in
             div []
                 [ div [] <| List.map viewChild children

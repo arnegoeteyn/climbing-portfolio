@@ -50,14 +50,9 @@ update msg item model =
                 SelectItem id ->
                     let
                         newUrl =
-                            case model.route of
-                                RoutesRoute _ ->
-                                    Url.Builder.relative [ "routes" ] [ Url.Builder.int "selected" id ]
-
-                                _ ->
-                                    Url.toString <| model.url
+                            ItemPageUtilities.urlToItem itemPageModel.itemType id
                     in
-                    ( { itemPageModel | selectedItemId = Just id }, pushUrl model.key newUrl )
+                    ( { itemPageModel | selectedItemId = Just id }, Cmd.none )
 
                 FilterUpdateMessage key value ->
                     ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )

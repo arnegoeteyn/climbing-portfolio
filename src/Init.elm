@@ -89,6 +89,15 @@ itemPageModel t route =
                 ( RoutesRoute maybeSelected, ClimbingRouteItem ) ->
                     maybeSelected
 
+                ( AscentsRoute maybeSelected, AscentItem ) ->
+                    maybeSelected
+
+                ( AreasRoute maybeSelected, AreaItem ) ->
+                    maybeSelected
+
+                ( SectorsRoute maybeSelected, SectorItem ) ->
+                    maybeSelected
+
                 _ ->
                     Nothing
     in
@@ -170,9 +179,9 @@ routeParser =
     Parser.oneOf
         [ Parser.map HomeRoute Parser.top
         , Parser.map RoutesRoute (Parser.s "routes" <?> Query.int "selected")
-        , Parser.map AscentsRoute (Parser.s "ascents")
-        , Parser.map SectorsRoute (Parser.s "sectors")
-        , Parser.map AreasRoute (Parser.s "areas")
+        , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected")
+        , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected")
+        , Parser.map AreasRoute (Parser.s "areas" <?> Query.int "selected")
         ]
 
 
