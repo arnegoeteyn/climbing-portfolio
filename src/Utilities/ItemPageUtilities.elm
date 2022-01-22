@@ -1,8 +1,9 @@
 module Utilities.ItemPageUtilities exposing (..)
 
+import Array exposing (Array)
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Init
+import Init exposing (itemPageModel)
 import Message exposing (Item(..), ItemRelation)
 import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
 import Set
@@ -197,6 +198,22 @@ toAscentItem model _ ascent =
     , parentId = ascent.routeId
     , childIds = Nothing
     }
+
+
+sortedItems : ItemPageModel -> Model -> List ItemPageItem
+sortedItems pageModel model =
+    getDataFromItem pageModel.itemType model
+        |> Dict.toList
+        |> List.map Tuple.second
+        |> List.sortBy
+            (\a ->
+                a.tableValues
+                    |> Array.fromList
+                    |> Array.get (Maybe.withDefault 0 pageModel.sortOnColumn)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.withDefault ""
+                    |> String.toLower
+            )
 
 
 urlToItem : Item -> Int -> String

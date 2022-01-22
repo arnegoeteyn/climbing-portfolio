@@ -10,7 +10,7 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString, maybe)
+import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)

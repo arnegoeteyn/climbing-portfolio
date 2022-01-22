@@ -38,6 +38,7 @@ type alias ItemPageModel =
     , form : ItemPageItemForm
     , selectedItemId : Maybe Int
     , filters : Dict String String
+    , sortOnColumn : Maybe Int
     }
 
 

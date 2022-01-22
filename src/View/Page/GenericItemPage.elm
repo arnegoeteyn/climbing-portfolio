@@ -96,11 +96,11 @@ viewItemForm itemPageModel model =
 viewItemPage : Item -> Model -> Html Msg
 viewItemPage item model =
     let
-        items =
-            getDataFromItem item model
-
         itemPageModel =
             ItemPageUtilities.getModelFromItem item model
+
+        items =
+            ItemPageUtilities.sortedItems itemPageModel model
     in
     div []
         [ viewAddItemButton itemPageModel
@@ -146,11 +146,11 @@ viewAddItemButton itemPageModel model =
                 ]
 
 
-viewItemList : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
+viewItemList : List ItemPageItem -> ItemPageModel -> Model -> Html Msg
 viewItemList items itemPageModel model =
     let
         headers =
-            (Dict.values >> List.head) items |> Maybe.map .tableValues |> Maybe.withDefault []
+            List.head items |> Maybe.map .tableValues |> Maybe.withDefault []
 
         filteredItems =
             List.filter
@@ -166,7 +166,7 @@ viewItemList items itemPageModel model =
                         True
                         itemPageModel.filters
                 )
-                (Dict.values items)
+                items
     in
     div []
         [ h2 [] [ text <| String.fromInt (List.length filteredItems) ++ " items" ]
@@ -189,8 +189,7 @@ viewItemList items itemPageModel model =
                 List.map
                     (\item ->
                         tr
-                            [ href <| ItemPageUtilities.urlToItem itemPageModel.itemType item.id
-                            , onClick <| ItemPage itemPageModel.itemType (SelectItem item.id)
+                            [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id)
                             ]
                         <|
                             List.map

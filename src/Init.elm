@@ -105,6 +105,7 @@ itemPageModel t route =
       , itemType = t
       , selectedItemId = selectedItem
       , filters = Dict.empty
+      , sortOnColumn = Just 0
       }
     , Cmd.none
     )
