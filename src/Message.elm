@@ -10,7 +10,7 @@ import Url exposing (Url)
 type Route
     = HomeRoute
     | AscentsRoute
-    | RoutesRoute
+    | RoutesRoute (Maybe Int) -- selected
     | SectorsRoute
     | AreasRoute
     | NotFoundRoute

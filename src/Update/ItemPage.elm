@@ -1,8 +1,12 @@
 module Update.ItemPage exposing (..)
 
+import Browser.Navigation exposing (pushUrl)
 import Dict exposing (Dict)
-import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg)
+import Init exposing (parseUrl)
+import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg, Route(..))
 import Model exposing (Criterium, ItemPageModel, Model)
+import Url
+import Url.Builder
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
@@ -28,26 +32,35 @@ update msg item model =
         itemPageModel =
             ItemPageUtilities.getModelFromItem item model
 
-        updatedItemPageModel =
+        ( updatedItemPageModel, updatedCmd ) =
             case msg of
                 CreateNewItem ->
-                    { itemPageModel | form = (\f -> { f | formState = Model.Create }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Create }) itemPageModel.form }, Cmd.none )
 
                 UpdateItem itemId ->
                     let
                         criteria =
                             ItemPageUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
                     in
-                    { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }, Cmd.none )
 
                 CloseForm ->
-                    { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }, Cmd.none )
 
                 SelectItem id ->
-                    { itemPageModel | selectedItemId = Just id }
+                    let
+                        newUrl =
+                            case model.route of
+                                RoutesRoute _ ->
+                                    Url.Builder.relative [ "routes" ] [ Url.Builder.int "selected" id ]
+
+                                _ ->
+                                    Url.toString <| model.url
+                    in
+                    ( { itemPageModel | selectedItemId = Just id }, pushUrl model.key newUrl )
 
                 FilterUpdateMessage key value ->
-                    { itemPageModel | filters = Dict.insert key value itemPageModel.filters }
+                    ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )
 
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
@@ -83,6 +96,6 @@ update msg item model =
                                 UpdateParent value ->
                                     { form | parentId = Just value }
                     in
-                    { itemPageModel | form = updatedForm }
+                    ( { itemPageModel | form = updatedForm }, Cmd.none )
     in
-    ( setItemPageModel item updatedItemPageModel model, Cmd.none )
+    ( setItemPageModel item updatedItemPageModel model, updatedCmd )

@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (AscentKind(..), ClimbingRouteKind(..), Sector, ascentKindDecoder, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
+import Data exposing (AscentKind(..), ClimbingRouteKind(..), ascentKindDecoder, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
 import Date
 import DatePicker
 import Dict exposing (Dict)
@@ -10,7 +10,7 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString, maybe)
+import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
@@ -29,7 +29,21 @@ update msg model =
             ( model, Cmd.none )
 
         ChangedUrl url ->
-            ( { model | route = parseUrl url }, Cmd.none )
+            let
+                parsedUrl =
+                    parseUrl url
+
+                ( newModel, newCmd ) =
+                    case parsedUrl of
+                        Message.RoutesRoute maybeClimbingRoute ->
+                            maybeClimbingRoute
+                                |> Maybe.map (\item -> Update.ItemPage.update (SelectItem item) ClimbingRouteItem model)
+                                |> Maybe.withDefault ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+            in
+            ( { newModel | route = parsedUrl, url = url }, Cmd.none )
 
         ClickedLink urlRequest ->
             case urlRequest of
@@ -71,6 +85,9 @@ update msg model =
                     encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors, areas = model.areas }
             in
             ( model, File.Download.string "result.json" "application/json" result )
+
+        ItemPage item itemPageMsg ->
+            Update.ItemPage.update itemPageMsg item model
 
         Home homeMsg ->
             Update.Home.update homeMsg model
@@ -158,9 +175,6 @@ update msg model =
                             ( model, Cmd.none )
             in
             ( { newModel | datePicker = newDatePicker }, newCmd )
-
-        ItemPage item itemPageMsg ->
-            Update.ItemPage.update itemPageMsg item model
 
 
 type alias ModelData =

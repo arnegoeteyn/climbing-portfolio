@@ -37,7 +37,7 @@ viewHeader model =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
                 , navLink AscentsRoute { url = "/ascents", caption = "Ascents" }
-                , navLink RoutesRoute { url = "/routes", caption = "Routes" }
+                , navLink (RoutesRoute Nothing) { url = "/routes", caption = "Routes" }
                 , navLink SectorsRoute { url = "/sectors", caption = "Sectors" }
                 , navLink AreasRoute { url = "/areas", caption = "Areas" }
                 ]
@@ -54,7 +54,12 @@ viewHeader model =
             ]
 
         isActive route =
-            model.route == route
+            case ( route, model.route ) of
+                ( RoutesRoute _, RoutesRoute _ ) ->
+                    True
+
+                _ ->
+                    model.route == route
 
         navLink : Route -> { url : String, caption : String } -> Html msg
         navLink route { url, caption } =
@@ -81,7 +86,7 @@ viewPage model =
             HomeRoute ->
                 viewHome model
 
-            RoutesRoute ->
+            RoutesRoute _ ->
                 GenericItemPage.viewItemPage ClimbingRouteItem model
 
             AscentsRoute ->
