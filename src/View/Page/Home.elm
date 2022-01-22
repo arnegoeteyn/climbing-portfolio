@@ -5,7 +5,7 @@ import Chart as C
 import Chart.Attributes as CA
 import Chart.Events as CE
 import Chart.Item as CI
-import Data exposing (ClimbingRouteKind)
+import Data
 import Dict
 import Html.Styled as H exposing (Html)
 import Html.Styled.Attributes as A
@@ -24,7 +24,7 @@ viewHome model =
         ]
 
 
-routesPerGrade : ClimbingRouteKind -> Model -> Html Msg
+routesPerGrade : Data.ClimbingRouteKind -> Model -> Html Msg
 routesPerGrade kind model =
     let
         grades =

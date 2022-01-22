@@ -106,9 +106,9 @@ viewItemPage item model =
         [ viewAddItemButton itemPageModel
             model
         , div
-            [ css [ Tw.grid, Tw.grid_cols_2 ] ]
-            [ viewItemList items itemPageModel model
-            , sidePanelView itemPageModel model
+            [ css [ Tw.flex, Tw.flex_row, Tw.h_screen ] ]
+            [ div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ viewItemList items itemPageModel model ]
+            , div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ sidePanelView itemPageModel model ]
             ]
         ]
 
