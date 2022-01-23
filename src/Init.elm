@@ -2,9 +2,8 @@ module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
 import Data exposing (jsonFileDecoder)
-import DatePicker exposing (DatePicker)
+import DatePicker
 import Dict
-import Html.Attributes exposing (type_)
 import Json.Decode exposing (decodeString)
 import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg(..), Route(..))
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)

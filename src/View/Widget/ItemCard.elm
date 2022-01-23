@@ -1,4 +1,4 @@
-module View.Widget.GenericItemCard exposing (..)
+module View.Widget.ItemCard exposing (..)
 
 import Data exposing (ItemPageItem)
 import Dict

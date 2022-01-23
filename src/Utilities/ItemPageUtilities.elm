@@ -1,15 +1,13 @@
 module Utilities.ItemPageUtilities exposing (..)
 
-import Array exposing (Array)
+import Array
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Init exposing (itemPageModel)
+import Init
 import Message exposing (Item(..), ItemRelation)
-import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
-import Set
+import Model exposing (ItemPageModel, Model)
 import Url.Builder
-import Utilities exposing (newId)
-import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -74,70 +72,6 @@ itemPageTableHeaders item =
 
         AreaItem ->
             [ "name", "country" ]
-
-
-getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
-getCriteriaFromItem requestId itemType model =
-    case itemType of
-        ClimbingRouteItem ->
-            Dict.get requestId model.climbingRoutes
-                |> ItemFormUtilities.toClimbingRouteFormCriteria
-
-        AscentItem ->
-            Dict.get requestId model.ascents
-                |> ItemFormUtilities.toAscentFormCriteria
-
-        AreaItem ->
-            Dict.get requestId model.areas
-                |> ItemFormUtilities.toAreaFormCriteria
-
-        SectorItem ->
-            Dict.get requestId model.sectors
-                |> ItemFormUtilities.toSectorFormCriteria
-
-
-getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
-getParentFromForm form parentCollection =
-    form.parentId
-        |> Maybe.andThen String.toInt
-        |> Maybe.andThen (\id -> Dict.get id parentCollection)
-
-
-getNewIdFromFrom : ItemPageItemForm -> Dict Int a -> Int
-getNewIdFromFrom form collection =
-    case form.formState of
-        Model.Update id ->
-            id
-
-        _ ->
-            newId collection
-
-
-modifiedParentCollection :
-    Int
-    -> Maybe { a | id : Int }
-    -> ({ a | id : Int } -> Maybe (Set.Set Int))
-    -> (Maybe (Set.Set Int) -> { a | id : Int } -> { a | id : Int })
-    -> Dict Int { a | id : Int }
-    -> Dict Int { a | id : Int }
-modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCollection =
-    let
-        newChildIds =
-            Set.insert
-                newId
-            <|
-                (maybeParent
-                    |> Maybe.andThen childAccessor
-                    |> Maybe.withDefault Set.empty
-                )
-
-        modifiedCollection =
-            maybeParent
-                |> Maybe.map (updateChildIds <| Just newChildIds)
-                |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
-                |> Maybe.withDefault parentCollection
-    in
-    modifiedCollection
 
 
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem

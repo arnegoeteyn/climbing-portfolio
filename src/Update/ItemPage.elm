@@ -1,12 +1,9 @@
 module Update.ItemPage exposing (..)
 
-import Browser.Navigation exposing (pushUrl)
 import Dict exposing (Dict)
-import Init exposing (parseUrl)
 import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg, Route(..))
 import Model exposing (Criterium, ItemPageModel, Model)
-import Url
-import Url.Builder
+import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
@@ -40,7 +37,7 @@ update msg item model =
                 UpdateItem itemId ->
                     let
                         criteria =
-                            ItemPageUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
+                            ItemFormUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
                     in
                     ( { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }, Cmd.none )
 

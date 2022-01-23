@@ -1,4 +1,4 @@
-module View.Page.GenericItemPage exposing (..)
+module View.Page.ItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
 import Date
@@ -15,7 +15,7 @@ import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
 import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getDataFromItem)
 import View.Components.Table as Table
-import View.Widget.GenericItemCard as GenericItemCard
+import View.Widget.ItemCard as GenericItemCard
 
 
 viewItemForm : ItemPageModel -> Model -> Html Msg
