@@ -5,7 +5,7 @@ import Dict exposing (Dict)
 import Json.Decode
 import Message exposing (Item(..))
 import Model exposing (Criterium, ItemPageItemForm, Model)
-import Set exposing (Set)
+import Set
 import Utilities
 
 

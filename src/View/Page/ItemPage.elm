@@ -5,8 +5,8 @@ import Date
 import DatePicker
 import Dict exposing (Dict(..))
 import Html
-import Html.Styled exposing (Html, button, div, h2, li, option, select, table, td, text, tr, ul)
-import Html.Styled.Attributes exposing (href, value)
+import Html.Styled exposing (Html, button, div, h2, option, select, table, td, text, tr)
+import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
 import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
@@ -74,8 +74,7 @@ viewItemForm itemPageModel model =
                             ]
                         <|
                             option [ value "" ] [ text "" ]
-                                :: (getDataFromItem parentItem model
-                                        |> Dict.values
+                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model) model
                                         |> List.map
                                             (\item ->
                                                 option
@@ -124,7 +123,7 @@ sidePanelView itemPageModel model =
 
 
 viewAddItemButton : ItemPageModel -> Model -> Html Msg
-viewAddItemButton itemPageModel model =
+viewAddItemButton itemPageModel _ =
     let
         addButton =
             button [ onClick (ItemPage itemPageModel.itemType CreateNewItem) ] [ text "New" ]
@@ -147,7 +146,7 @@ viewAddItemButton itemPageModel model =
 
 
 viewItemList : List ItemPageItem -> ItemPageModel -> Model -> Html Msg
-viewItemList items itemPageModel model =
+viewItemList items itemPageModel _ =
     let
         headers =
             List.head items |> Maybe.map .tableValues |> Maybe.withDefault []
