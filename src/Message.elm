@@ -9,10 +9,10 @@ import Url exposing (Url)
 
 type Route
     = HomeRoute
-    | AscentsRoute
-    | RoutesRoute (Maybe Int) -- selected
-    | SectorsRoute
-    | AreasRoute
+    | AscentsRoute (Maybe Int) (Maybe String)
+    | RoutesRoute (Maybe Int) (Maybe String) -- selected, criteria
+    | SectorsRoute (Maybe Int) (Maybe String)
+    | AreasRoute (Maybe Int) (Maybe String)
     | NotFoundRoute
 
 
@@ -62,11 +62,3 @@ type ItemPageMsg
 type CriteriumUpdate
     = UpdateParent String
     | UpdateKey String String
-
-
-type ClimbingRouteMsg
-    = AddAscentButtonClicked
-
-
-type SectorMsg
-    = NoneSector
