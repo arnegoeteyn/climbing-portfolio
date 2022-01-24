@@ -11,6 +11,11 @@ cardButtonTWProperties =
     [ Tw.py_2, Tw.px_4, Tw.mt_5, Tw.rounded_lg, Tw.text_white, Tw.font_semibold ]
 
 
+neutralButtonTWProperties : Attribute msg
+neutralButtonTWProperties =
+    css <| Tw.bg_blue_300 :: cardButtonTWProperties
+
+
 positiveButtonTWProperties : Attribute msg
 positiveButtonTWProperties =
     css <| Tw.bg_green_500 :: cardButtonTWProperties

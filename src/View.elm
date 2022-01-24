@@ -36,10 +36,10 @@ viewHeader model =
         links =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
-                , navLink (AscentsRoute Nothing) { url = "/ascents", caption = "Ascents" }
-                , navLink (RoutesRoute Nothing) { url = "/routes", caption = "Routes" }
-                , navLink (SectorsRoute Nothing) { url = "/sectors", caption = "Sectors" }
-                , navLink (AreasRoute Nothing) { url = "/areas", caption = "Areas" }
+                , navLink (AscentsRoute Nothing Nothing) { url = "/ascents", caption = "Ascents" }
+                , navLink (RoutesRoute Nothing Nothing) { url = "/routes", caption = "Routes" }
+                , navLink (SectorsRoute Nothing Nothing) { url = "/sectors", caption = "Sectors" }
+                , navLink (AreasRoute Nothing Nothing) { url = "/areas", caption = "Areas" }
                 ]
 
         navAttributes =
@@ -55,7 +55,16 @@ viewHeader model =
 
         isActive route =
             case ( route, model.route ) of
-                ( RoutesRoute _, RoutesRoute _ ) ->
+                ( AreasRoute _ _, AreasRoute _ _ ) ->
+                    True
+
+                ( SectorsRoute _ _, SectorsRoute _ _ ) ->
+                    True
+
+                ( RoutesRoute _ _, RoutesRoute _ _ ) ->
+                    True
+
+                ( AscentsRoute _ _, AscentsRoute _ _ ) ->
                     True
 
                 _ ->
@@ -86,16 +95,16 @@ viewPage model =
             HomeRoute ->
                 viewHome model
 
-            RoutesRoute _ ->
+            RoutesRoute _ _ ->
                 ItemPage.viewItemPage ClimbingRouteItem model
 
-            AscentsRoute _ ->
+            AscentsRoute _ _ ->
                 ItemPage.viewItemPage AscentItem model
 
-            SectorsRoute _ ->
+            SectorsRoute _ _ ->
                 ItemPage.viewItemPage SectorItem model
 
-            AreasRoute _ ->
+            AreasRoute _ _ ->
                 ItemPage.viewItemPage AreaItem model
 
             NotFoundRoute ->

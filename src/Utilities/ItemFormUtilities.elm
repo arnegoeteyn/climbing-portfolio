@@ -4,9 +4,25 @@ import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector
 import Dict exposing (Dict)
 import Json.Decode
 import Message exposing (Item(..))
-import Model exposing (Criterium, ItemPageItemForm, Model)
+import Model exposing (Criteria, Criterium, ItemPageItemForm, Model)
 import Set
 import Utilities
+
+
+getFormFromItem : Item -> Model -> ItemPageItemForm
+getFormFromItem item model =
+    case item of
+        AreaItem ->
+            model.areasModel.form
+
+        SectorItem ->
+            model.sectorsModel.form
+
+        ClimbingRouteItem ->
+            model.climbingRoutesModel.form
+
+        AscentItem ->
+            model.ascentsModel.form
 
 
 parentIdAccessor : (a -> Maybe Int) -> Maybe a -> String
@@ -14,7 +30,7 @@ parentIdAccessor parentId =
     Utilities.maybeAccessor (parentId >> Maybe.map String.fromInt >> Maybe.withDefault "")
 
 
-getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
+getCriteriaFromItem : Int -> Item -> Model -> Criteria
 getCriteriaFromItem requestId itemType model =
     case itemType of
         ClimbingRouteItem ->
@@ -34,7 +50,7 @@ getCriteriaFromItem requestId itemType model =
                 |> toSectorFormCriteria
 
 
-toClimbingRouteFormCriteria : Maybe ClimbingRoute -> Dict String Criterium
+toClimbingRouteFormCriteria : Maybe ClimbingRoute -> Criteria
 toClimbingRouteFormCriteria maybeClimbingRoute =
     Dict.fromList
         [ ( "_parentId", { value = parentIdAccessor .sectorId maybeClimbingRoute, label = "_parentId", type_ = Model.Enumeration [] } )
@@ -53,7 +69,7 @@ toClimbingRouteFormCriteria maybeClimbingRoute =
         ]
 
 
-toSectorFormCriteria : Maybe Sector -> Dict String Criterium
+toSectorFormCriteria : Maybe Sector -> Criteria
 toSectorFormCriteria maybeSector =
     Dict.fromList
         [ ( "_parentId", { value = parentIdAccessor .areaId maybeSector, label = "_parentId", type_ = Model.Enumeration [] } )
@@ -256,3 +272,18 @@ areaFromForm model form =
     , country = Maybe.withDefault "" maybeCountry
     , sectorIds = Nothing
     }
+
+
+updateCriterium : String -> String -> Criteria -> Criteria
+updateCriterium key value criteria =
+    let
+        formItem =
+            Dict.get key criteria
+
+        updatedFormItem =
+            Maybe.map (\item -> { item | value = value }) formItem
+
+        updatedCriteria =
+            Maybe.map (\c -> Dict.insert key c criteria) updatedFormItem
+    in
+    Maybe.withDefault criteria updatedCriteria

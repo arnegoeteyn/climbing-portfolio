@@ -12,7 +12,7 @@ import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
+import Message exposing (Item(..), ItemPageMsg(..), Msg(..), Route(..))
 import Model exposing (AppState(..), FormState(..), Model)
 import Set
 import Task
@@ -20,7 +20,7 @@ import Update.Home
 import Update.ItemPage
 import Url
 import Utilities.ItemFormUtilities as ItemFormUtilities
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getItemFromRoute, setItemPageModel)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -31,10 +31,29 @@ update msg model =
 
         ChangedUrl url ->
             let
-                parsedUrl =
+                parsedRoute =
                     parseUrl url
+
+                maybeItemPageModel =
+                    Maybe.map (\item -> ItemPageUtilities.getModelFromItem item model) <| getItemFromRoute parsedRoute
+
+                maybeParams =
+                    maybeItemPageModel
+                        |> Maybe.map
+                            (\itemPageModel -> ItemPageUtilities.paramsFromRoute itemPageModel.form parsedRoute)
+
+                updatedModel =
+                    { model | route = parseUrl url, url = url }
+
+                updatedItemPageModel =
+                    Maybe.map2 ItemPageUtilities.updateItemPageModelWithParams maybeItemPageModel maybeParams
             in
-            ( { model | route = parsedUrl, url = url }, Cmd.none )
+            ( Maybe.map
+                (\itemPageModel -> ItemPageUtilities.setItemPageModel itemPageModel updatedModel)
+                updatedItemPageModel
+                |> Maybe.withDefault updatedModel
+            , Cmd.none
+            )
 
         ClickedLink urlRequest ->
             case urlRequest of

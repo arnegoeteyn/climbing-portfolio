@@ -5,12 +5,13 @@ import Data exposing (jsonFileDecoder)
 import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg(..), Route(..))
+import Message exposing (Item(..), ItemRelation, Msg(..), Route(..))
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
 import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities.ItemPageUtilities exposing (paramsFromRoute)
 
 
 init : String -> Url -> Key -> ( Model, Cmd Msg )
@@ -66,6 +67,22 @@ init storageCache url key =
     )
 
 
+getRelationFromItem : Item -> ItemRelation
+getRelationFromItem item =
+    case item of
+        ClimbingRouteItem ->
+            climbingRouteRelations
+
+        AscentItem ->
+            ascentRelations
+
+        SectorItem ->
+            sectorRelations
+
+        AreaItem ->
+            areaRelations
+
+
 itemPageModel : Item -> Route -> ( ItemPageModel, Cmd Msg )
 itemPageModel t route =
     let
@@ -83,24 +100,10 @@ itemPageModel t route =
                 AreaItem ->
                     areaForm
 
-        selectedItem =
-            case ( route, t ) of
-                ( RoutesRoute maybeSelected, ClimbingRouteItem ) ->
-                    maybeSelected
-
-                ( AscentsRoute maybeSelected, AscentItem ) ->
-                    maybeSelected
-
-                ( AreasRoute maybeSelected, AreaItem ) ->
-                    maybeSelected
-
-                ( SectorsRoute maybeSelected, SectorItem ) ->
-                    maybeSelected
-
-                _ ->
-                    Nothing
+        ( selectedItem, criteria, formState ) =
+            paramsFromRoute form route
     in
-    ( { form = form
+    ( { form = { form | criteria = criteria, formState = formState }
       , itemType = t
       , selectedItemId = selectedItem
       , filters = Dict.empty
@@ -178,10 +181,10 @@ routeParser : Parser (Route -> a) a
 routeParser =
     Parser.oneOf
         [ Parser.map HomeRoute Parser.top
-        , Parser.map RoutesRoute (Parser.s "routes" <?> Query.int "selected")
-        , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected")
-        , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected")
-        , Parser.map AreasRoute (Parser.s "areas" <?> Query.int "selected")
+        , Parser.map RoutesRoute (Parser.s "routes" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map AreasRoute (Parser.s "areas" <?> Query.int "selected" <?> Query.string "criteria")
         ]
 
 

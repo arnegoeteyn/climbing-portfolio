@@ -5,10 +5,12 @@ import Dict
 import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css, href)
 import Html.Styled.Events exposing (onClick)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
+import Init exposing (itemPageModel)
+import Message exposing (Item(..), ItemPageMsg(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Set
 import Tailwind.Utilities as Tw
+import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
 import View.Components.Buttons as Buttons
 
@@ -35,7 +37,7 @@ view itemPageModel model =
                 Just item ->
                     let
                         itemRelation =
-                            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
+                            Init.getRelationFromItem itemPageModel.itemType
 
                         maybeParent =
                             itemRelation.parent
@@ -87,29 +89,41 @@ viewChildren : ItemPageItem -> Item -> Model -> Html Msg
 viewChildren itemPageItem item model =
     let
         childRelation =
-            ItemPageUtilities.getRelationFromItem item
+            Init.getRelationFromItem item
     in
-    case childRelation.child of
-        Just childItemType ->
-            let
-                childCollection =
-                    ItemPageUtilities.getDataFromItem childItemType model
+    div []
+        [ case childRelation.child of
+            Just childItemType ->
+                let
+                    childCollection =
+                        ItemPageUtilities.getDataFromItem childItemType model
 
-                children =
-                    List.sortBy .identifier <| List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
+                    children =
+                        List.sortBy .identifier <| List.filterMap identity <| List.map (\id -> Dict.get id childCollection) <| Set.toList <| Maybe.withDefault Set.empty itemPageItem.childIds
 
-                viewChild child =
-                    div []
-                        [ a
-                            [ onClick <| ItemPage childItemType (SelectItem child.id)
-                            , href <| ItemPageUtilities.urlToItem childItemType child.id
+                    viewChild child =
+                        div []
+                            [ a
+                                [ onClick <| ItemPage childItemType (SelectItem child.id)
+                                , href <| ItemPageUtilities.urlToItem childItemType child.id
+                                ]
+                                [ text child.identifier ]
                             ]
-                            [ text child.identifier ]
-                        ]
-            in
-            div []
-                [ div [] <| List.map viewChild children
-                ]
+                in
+                div []
+                    [ div [] <| List.map viewChild children
+                    ]
 
-        Nothing ->
-            div [] []
+            Nothing ->
+                div [] []
+        , childRelation.child
+            |> Maybe.map
+                (\child ->
+                    a
+                        [ href <|
+                            ItemPageUtilities.urlToCreateItem child [ { key = "_parentId", value = String.fromInt itemPageItem.id } ]
+                        ]
+                        [ text "addChild" ]
+                )
+            |> Maybe.withDefault (text "")
+        ]

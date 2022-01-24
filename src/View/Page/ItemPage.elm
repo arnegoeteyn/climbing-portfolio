@@ -8,12 +8,13 @@ import Html
 import Html.Styled exposing (Html, button, div, h2, option, select, table, td, text, tr)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
+import Init
+import Message exposing (CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
-import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getDataFromItem)
+import Utilities.ItemPageUtilities as ItemPageUtilities
 import View.Components.Table as Table
 import View.Widget.ItemCard as GenericItemCard
 
@@ -65,7 +66,7 @@ viewItemForm itemPageModel model =
                                 |> Html.Styled.fromUnstyled
 
         maybeParentCriterium =
-            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
+            Init.getRelationFromItem itemPageModel.itemType
                 |> .parent
                 |> Maybe.map
                     (\parentItem ->

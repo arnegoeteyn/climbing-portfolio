@@ -3,7 +3,6 @@ module Model exposing (..)
 import Browser.Navigation exposing (Key)
 import Chart.Item as CI
 import Data exposing (Area, Ascent, ClimbingRoute, Sector)
-import Date exposing (Date)
 import DatePicker
 import Dict exposing (Dict)
 import Message exposing (Item, Route)
@@ -65,6 +64,10 @@ type CriteriumType
     = String
     | Date
     | Enumeration (List String)
+
+
+type alias Criteria =
+    Dict String Criterium
 
 
 type alias Criterium =

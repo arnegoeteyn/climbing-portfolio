@@ -2,25 +2,9 @@ module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
 import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg, Route(..))
-import Model exposing (Criterium, ItemPageModel, Model)
+import Model exposing (Criterium, Model)
 import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
-
-
-setItemPageModel : Item -> ItemPageModel -> Model -> Model
-setItemPageModel item itemPageModel model =
-    case item of
-        ClimbingRouteItem ->
-            { model | climbingRoutesModel = itemPageModel }
-
-        SectorItem ->
-            { model | sectorsModel = itemPageModel }
-
-        AscentItem ->
-            { model | ascentsModel = itemPageModel }
-
-        AreaItem ->
-            { model | areasModel = itemPageModel }
 
 
 update : ItemPageMsg -> Item -> Model -> ( Model, Cmd Msg )
@@ -90,4 +74,4 @@ update msg item model =
                     in
                     ( { itemPageModel | form = updatedForm }, Cmd.none )
     in
-    ( setItemPageModel item updatedItemPageModel model, updatedCmd )
+    ( ItemPageUtilities.setItemPageModel updatedItemPageModel model, updatedCmd )
