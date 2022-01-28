@@ -4,9 +4,14 @@ import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector
 import Dict exposing (Dict)
 import Json.Decode
 import Message exposing (Item(..))
-import Model exposing (Criteria, Criterium, ItemPageItemForm, Model)
+import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
 import Set
 import Utilities
+
+
+closeForm : ItemPageItemForm -> ItemPageItemForm
+closeForm form =
+    { form | formState = Hidden }
 
 
 getFormFromItem : Item -> Model -> ItemPageItemForm
