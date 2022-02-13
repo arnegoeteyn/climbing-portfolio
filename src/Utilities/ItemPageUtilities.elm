@@ -284,6 +284,6 @@ updateItemPageModelWithParams : ItemPageModel -> ( Maybe Int, Criteria, FormStat
 updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
     let
         form =
-            (\x -> { x | criteria = criteria, formState = formState }) model.form
+            (\x -> { x | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }) model.form
     in
     { model | form = form, selectedItemId = maybeSelectedId }
