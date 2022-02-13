@@ -4,9 +4,14 @@ import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector
 import Dict exposing (Dict)
 import Json.Decode
 import Message exposing (Item(..))
-import Model exposing (Criteria, Criterium, ItemPageItemForm, Model)
+import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
 import Set
 import Utilities
+
+
+closeForm : ItemPageItemForm -> ItemPageItemForm
+closeForm form =
+    { form | formState = Hidden }
 
 
 getFormFromItem : Item -> Model -> ItemPageItemForm
@@ -186,7 +191,7 @@ climbingRouteFromForm model form =
       , grade = Maybe.withDefault "" maybeGrade
       , comment = maybeComment
       , ascentIds = Just Set.empty
-      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString Data.climbingRouteKindDecoder) maybeKind |> Maybe.withDefault Sport
+      , kind = Maybe.andThen Data.climbingRouteKindFromString maybeKind |> Maybe.withDefault Sport
       }
     , modifiedSectors
     )
@@ -249,7 +254,7 @@ ascentFromForm model form =
       , comment = maybeComment
       , date = maybeDate
       , routeId = Maybe.map .id maybeRoute
-      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString Data.ascentKindDecoder) maybeKind |> Maybe.withDefault Data.Redpoint
+      , kind = Maybe.andThen Data.ascentKindFromString maybeKind |> Maybe.withDefault Data.Redpoint
       }
     , modifiedRoutes
     )

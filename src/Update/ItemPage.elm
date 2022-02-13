@@ -29,11 +29,7 @@ update msg item model =
                     ( { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }, Cmd.none )
 
                 SelectItem id ->
-                    let
-                        newUrl =
-                            ItemPageUtilities.urlToItem itemPageModel.itemType id
-                    in
-                    ( { itemPageModel | selectedItemId = Just id }, Cmd.none )
+                    ( { itemPageModel | selectedItemId = Just id, form = ItemFormUtilities.closeForm itemPageModel.form }, Cmd.none )
 
                 FilterUpdateMessage key value ->
                     ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )

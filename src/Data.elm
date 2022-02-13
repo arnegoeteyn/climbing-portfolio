@@ -75,16 +75,26 @@ climbingRouteKindDecoder =
     Json.Decode.string
         |> Json.Decode.andThen
             (\str ->
-                case String.toLower str of
-                    "sport" ->
-                        Json.Decode.succeed Sport
+                case climbingRouteKindFromString str of
+                    Just value ->
+                        Json.Decode.succeed value
 
-                    "boulder" ->
-                        Json.Decode.succeed Boulder
-
-                    _ ->
+                    Nothing ->
                         Json.Decode.fail "invalid routeKind"
             )
+
+
+climbingRouteKindFromString : String -> Maybe ClimbingRouteKind
+climbingRouteKindFromString s =
+    case String.toLower s of
+        "sport" ->
+            Just Sport
+
+        "boulder" ->
+            Just Boulder
+
+        _ ->
+            Nothing
 
 
 climbingRouteKindToString : ClimbingRouteKind -> String
@@ -160,21 +170,9 @@ ascentKindDecoder =
     Json.Decode.string
         |> Json.Decode.andThen
             (\str ->
-                case String.toLower str of
-                    "onsight" ->
-                        Json.Decode.succeed Onsight
-
-                    "redpoint" ->
-                        Json.Decode.succeed Redpoint
-
-                    "flash" ->
-                        Json.Decode.succeed Flash
-
-                    "repeat" ->
-                        Json.Decode.succeed Repeat
-
-                    "secondgo" ->
-                        Json.Decode.succeed SecondGo
+                case ascentKindFromString str of
+                    Just value ->
+                        Json.Decode.succeed value
 
                     _ ->
                         Json.Decode.fail "invalid routeKind"
@@ -184,6 +182,28 @@ ascentKindDecoder =
 encodeAscentKind : AscentKind -> Json.Encode.Value
 encodeAscentKind =
     Json.Encode.string << ascentKindToString
+
+
+ascentKindFromString : String -> Maybe AscentKind
+ascentKindFromString s =
+    case String.toLower s of
+        "onsight" ->
+            Just Onsight
+
+        "redpoint" ->
+            Just Redpoint
+
+        "flash" ->
+            Just Flash
+
+        "repeat" ->
+            Just Repeat
+
+        "secondgo" ->
+            Just SecondGo
+
+        _ ->
+            Nothing
 
 
 ascentKindToString : AscentKind -> String
