@@ -184,13 +184,16 @@ climbingRouteFromForm model form =
 
         maybeComment =
             getCriteriumValueFromForm "comment" form
+
+        maybeAscentIds =
+            Dict.get newRouteId model.climbingRoutes |> Maybe.andThen .ascentIds
     in
     ( { id = newRouteId
       , sectorId = Maybe.map .id maybeSector
       , name = Maybe.withDefault "" maybeName
       , grade = Maybe.withDefault "" maybeGrade
       , comment = maybeComment
-      , ascentIds = Just Set.empty
+      , ascentIds = maybeAscentIds
       , kind = Maybe.andThen Data.climbingRouteKindFromString maybeKind |> Maybe.withDefault Sport
       }
     , modifiedSectors
@@ -215,10 +218,13 @@ sectorFromForm model form =
 
         maybeName =
             getCriteriumValueFromForm "name" form
+
+        maybeRouteIds =
+            Dict.get newSectorId model.sectors |> Maybe.andThen .routeIds
     in
     ( { id = newSectorId
       , name = Maybe.withDefault "" maybeName
-      , routeIds = Nothing
+      , routeIds = maybeRouteIds
       , areaId = Maybe.map .id maybeArea
       }
     , modifiedAreas
@@ -271,11 +277,14 @@ areaFromForm model form =
 
         maybeCountry =
             getCriteriumValueFromForm "country" form
+
+        maybeSectorIds =
+            Dict.get newAreaId model.areas |> Maybe.andThen .sectorIds
     in
     { id = newAreaId
     , name = Maybe.withDefault "" maybeName
     , country = Maybe.withDefault "" maybeCountry
-    , sectorIds = Nothing
+    , sectorIds = maybeSectorIds
     }
 
 

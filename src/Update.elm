@@ -145,7 +145,10 @@ update msg model =
                                 ( newClimbingRoute, modifiedSectors ) =
                                     ItemFormUtilities.climbingRouteFromForm model form
                             in
-                            { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
+                            { model
+                                | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes
+                                , sectors = modifiedSectors
+                            }
 
                         SectorItem ->
                             let
