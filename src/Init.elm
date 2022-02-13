@@ -103,7 +103,7 @@ itemPageModel t route =
         ( selectedItem, criteria, formState ) =
             paramsFromRoute form route
     in
-    ( { form = { form | criteria = criteria, formState = formState }
+    ( { form = { form | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }
       , itemType = t
       , selectedItemId = selectedItem
       , filters = Dict.empty
