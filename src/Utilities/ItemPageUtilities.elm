@@ -1,13 +1,34 @@
 module Utilities.ItemPageUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
+import Array
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), CriteriumValue, ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Init
-import Message exposing (Item(..), ItemRelation)
-import Model exposing (Criterium, ItemPageItemForm, ItemPageModel, Model)
-import Set
-import Utilities exposing (newId)
+import Json.Decode exposing (decodeString)
+import Json.Encode exposing (encode)
+import Message exposing (Item(..), Route(..))
+import Model exposing (Criteria, FormState(..), ItemPageItemForm, ItemPageModel, Model)
+import Url.Builder
+import Utilities
 import Utilities.ItemFormUtilities as ItemFormUtilities
+
+
+getItemFromRoute : Route -> Maybe Item
+getItemFromRoute route =
+    case route of
+        AreasRoute _ _ ->
+            Just AreaItem
+
+        SectorsRoute _ _ ->
+            Just SectorItem
+
+        RoutesRoute _ _ ->
+            Just ClimbingRouteItem
+
+        AscentsRoute _ _ ->
+            Just AscentItem
+
+        _ ->
+            Nothing
 
 
 getModelFromItem : Item -> Model -> ItemPageModel
@@ -42,22 +63,6 @@ getDataFromItem item model =
             Dict.map toAreaItem model.areas
 
 
-getRelationFromItem : Item -> ItemRelation
-getRelationFromItem item =
-    case item of
-        ClimbingRouteItem ->
-            Init.climbingRouteRelations
-
-        AscentItem ->
-            Init.ascentRelations
-
-        SectorItem ->
-            Init.sectorRelations
-
-        AreaItem ->
-            Init.areaRelations
-
-
 itemPageTableHeaders : Item -> List String
 itemPageTableHeaders item =
     case item of
@@ -72,71 +77,6 @@ itemPageTableHeaders item =
 
         AreaItem ->
             [ "name", "country" ]
-
-
-getCriteriaFromItem : Int -> Item -> Model -> Dict String Criterium
-getCriteriaFromItem requestId itemType model =
-    case itemType of
-        ClimbingRouteItem ->
-            Dict.get requestId model.climbingRoutes
-                |> ItemFormUtilities.toClimbingRouteFormCriteria
-
-        AscentItem ->
-            Dict.get requestId model.ascents
-                |> ItemFormUtilities.toAscentFormCriteria
-
-        AreaItem ->
-            Dict.get requestId model.areas
-                |> ItemFormUtilities.toAreaFormCriteria
-
-        SectorItem ->
-            Dict.get requestId model.sectors
-                |> ItemFormUtilities.toSectorFormCriteria
-
-
-getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
-getParentFromForm form parentCollection =
-    form.parentId
-        |> Maybe.andThen String.toInt
-        |> Maybe.andThen (\id -> Dict.get id parentCollection)
-
-
-getNewIdFromFrom : ItemPageItemForm -> Dict Int a -> Int
-getNewIdFromFrom form collection =
-    case form.formState of
-        Model.Update id ->
-            id
-
-        _ ->
-            newId collection
-
-
-modifiedParentCollection :
-    Int
-    -> Maybe { a | id : Int }
-    -> ({ a | id : Int } -> Maybe (Set.Set Int))
-    -> (Maybe (Set.Set Int) -> { a | id : Int } -> { a | id : Int })
-    -> Dict Int { a | id : Int }
-    -> Dict Int { a | id : Int }
-modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCollection =
-    let
-        newChildIds =
-            Set.insert
-                newId
-            <|
-                (maybeParent
-                    |> Maybe.andThen childAccessor
-                    |> Maybe.withDefault Set.empty
-                )
-
-        modifiedCollection =
-            maybeParent
-                |> Maybe.map (updateChildIds <| Just newChildIds)
-                -- (\parent -> { parent | childAccessor = Just newChildIds })
-                |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
-                |> Maybe.withDefault parentCollection
-    in
-    modifiedCollection
 
 
 toClimbingRouteItem : Int -> ClimbingRoute -> ItemPageItem
@@ -197,3 +137,153 @@ toAscentItem model _ ascent =
     , parentId = ascent.routeId
     , childIds = Nothing
     }
+
+
+sortedItems : ItemPageModel -> Model -> List ItemPageItem
+sortedItems pageModel model =
+    getDataFromItem pageModel.itemType model
+        |> Dict.toList
+        |> List.map Tuple.second
+        |> List.sortBy
+            (\a ->
+                a.tableValues
+                    |> Array.fromList
+                    |> Array.get (Maybe.withDefault 0 pageModel.sortOnColumn)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.withDefault ""
+                    |> String.toLower
+            )
+
+
+urlToItem : Item -> Int -> String
+urlToItem t id =
+    let
+        prefix =
+            case t of
+                Message.AreaItem ->
+                    "areas"
+
+                Message.SectorItem ->
+                    "sectors"
+
+                Message.ClimbingRouteItem ->
+                    "routes"
+
+                Message.AscentItem ->
+                    "ascents"
+    in
+    Url.Builder.absolute [ prefix ] [ Url.Builder.int "selected" id ]
+
+
+urlToCreateItem : Item -> List CriteriumValue -> String
+urlToCreateItem item criteria =
+    let
+        prefix =
+            case item of
+                Message.AreaItem ->
+                    "areas"
+
+                Message.SectorItem ->
+                    "sectors"
+
+                Message.ClimbingRouteItem ->
+                    "routes"
+
+                Message.AscentItem ->
+                    "ascents"
+    in
+    Url.Builder.absolute [ prefix ] [ Url.Builder.string "criteria" (encode 0 <| Data.encodeCriteriumValueList criteria) ]
+
+
+paramsFromRoute : ItemPageItemForm -> Route -> ( Maybe Int, Criteria, FormState )
+paramsFromRoute form route =
+    let
+        maybeItem =
+            getItemFromRoute route
+
+        ( maybeSelectedId, maybeCriteria, formState ) =
+            case maybeItem of
+                Just item ->
+                    case ( route, item ) of
+                        ( Message.RoutesRoute maybeSelected criteria, ClimbingRouteItem ) ->
+                            ( maybeSelected
+                            , criteria
+                            , if criteria == Nothing then
+                                Hidden
+
+                              else
+                                Create
+                            )
+
+                        ( Message.AscentsRoute maybeSelected criteria, AscentItem ) ->
+                            ( maybeSelected
+                            , criteria
+                            , if criteria == Nothing then
+                                Hidden
+
+                              else
+                                Create
+                            )
+
+                        ( Message.AreasRoute maybeSelected criteria, AreaItem ) ->
+                            ( maybeSelected
+                            , criteria
+                            , if criteria == Nothing then
+                                Hidden
+
+                              else
+                                Create
+                            )
+
+                        ( Message.SectorsRoute maybeSelected criteria, SectorItem ) ->
+                            ( maybeSelected
+                            , criteria
+                            , if criteria == Nothing then
+                                Hidden
+
+                              else
+                                Create
+                            )
+
+                        _ ->
+                            ( Nothing, Nothing, Hidden )
+
+                Nothing ->
+                    ( Nothing, Nothing, Hidden )
+
+        formCriteria =
+            form.criteria
+
+        updatedCriteria =
+            maybeCriteria
+                |> Maybe.map (\c -> decodeString Data.criteriumValueListDecoder c)
+                |> Maybe.andThen Result.toMaybe
+                |> Maybe.map (List.foldr (\c -> ItemFormUtilities.updateCriterium c.key c.value) formCriteria)
+                |> Maybe.withDefault formCriteria
+    in
+    ( maybeSelectedId, updatedCriteria, formState )
+
+
+setItemPageModel : ItemPageModel -> Model -> Model
+setItemPageModel itemPageModel model =
+    case itemPageModel.itemType of
+        ClimbingRouteItem ->
+            { model | climbingRoutesModel = itemPageModel }
+
+        SectorItem ->
+            { model | sectorsModel = itemPageModel }
+
+        AscentItem ->
+            { model | ascentsModel = itemPageModel }
+
+        AreaItem ->
+            { model | areasModel = itemPageModel }
+
+
+updateItemPageModelWithParams : ItemPageModel -> ( Maybe Int, Criteria, FormState ) -> ItemPageModel
+updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
+    let
+        form =
+            (\x -> { x | criteria = criteria, formState = formState }) model.form
+    in
+    { model | form = form, selectedItemId = maybeSelectedId }

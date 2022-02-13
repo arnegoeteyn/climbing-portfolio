@@ -1,25 +1,10 @@
 module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
-import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg)
-import Model exposing (Criterium, ItemPageModel, Model)
+import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg, Route(..))
+import Model exposing (Criterium, Model)
+import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
-
-
-setItemPageModel : Item -> ItemPageModel -> Model -> Model
-setItemPageModel item itemPageModel model =
-    case item of
-        ClimbingRouteItem ->
-            { model | climbingRoutesModel = itemPageModel }
-
-        SectorItem ->
-            { model | sectorsModel = itemPageModel }
-
-        AscentItem ->
-            { model | ascentsModel = itemPageModel }
-
-        AreaItem ->
-            { model | areasModel = itemPageModel }
 
 
 update : ItemPageMsg -> Item -> Model -> ( Model, Cmd Msg )
@@ -28,26 +13,30 @@ update msg item model =
         itemPageModel =
             ItemPageUtilities.getModelFromItem item model
 
-        updatedItemPageModel =
+        ( updatedItemPageModel, updatedCmd ) =
             case msg of
                 CreateNewItem ->
-                    { itemPageModel | form = (\f -> { f | formState = Model.Create }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Create }) itemPageModel.form }, Cmd.none )
 
                 UpdateItem itemId ->
                     let
                         criteria =
-                            ItemPageUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
+                            ItemFormUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
                     in
-                    { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }, Cmd.none )
 
                 CloseForm ->
-                    { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }
+                    ( { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }, Cmd.none )
 
                 SelectItem id ->
-                    { itemPageModel | selectedItemId = Just id }
+                    let
+                        newUrl =
+                            ItemPageUtilities.urlToItem itemPageModel.itemType id
+                    in
+                    ( { itemPageModel | selectedItemId = Just id }, Cmd.none )
 
                 FilterUpdateMessage key value ->
-                    { itemPageModel | filters = Dict.insert key value itemPageModel.filters }
+                    ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )
 
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
@@ -83,6 +72,6 @@ update msg item model =
                                 UpdateParent value ->
                                     { form | parentId = Just value }
                     in
-                    { itemPageModel | form = updatedForm }
+                    ( { itemPageModel | form = updatedForm }, Cmd.none )
     in
-    ( setItemPageModel item updatedItemPageModel model, Cmd.none )
+    ( ItemPageUtilities.setItemPageModel updatedItemPageModel model, updatedCmd )

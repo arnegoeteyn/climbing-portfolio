@@ -5,7 +5,6 @@ import Command exposing (updateWithStorage)
 import Init exposing (init)
 import Message exposing (Msg)
 import Model exposing (Model)
-import Update exposing (update)
 import View exposing (view)
 
 

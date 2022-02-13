@@ -9,8 +9,8 @@ import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
 import Utilities exposing (filterList)
-import View.Page.GenericItemPage as GenericItemPage
 import View.Page.Home exposing (viewHome)
+import View.Page.ItemPage as ItemPage
 
 
 view : Model -> List (Html.Html Msg)
@@ -36,10 +36,10 @@ viewHeader model =
         links =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
-                , navLink AscentsRoute { url = "/ascents", caption = "Ascents" }
-                , navLink RoutesRoute { url = "/routes", caption = "Routes" }
-                , navLink SectorsRoute { url = "/sectors", caption = "Sectors" }
-                , navLink AreasRoute { url = "/areas", caption = "Areas" }
+                , navLink (AscentsRoute Nothing Nothing) { url = "/ascents", caption = "Ascents" }
+                , navLink (RoutesRoute Nothing Nothing) { url = "/routes", caption = "Routes" }
+                , navLink (SectorsRoute Nothing Nothing) { url = "/sectors", caption = "Sectors" }
+                , navLink (AreasRoute Nothing Nothing) { url = "/areas", caption = "Areas" }
                 ]
 
         navAttributes =
@@ -54,7 +54,21 @@ viewHeader model =
             ]
 
         isActive route =
-            model.route == route
+            case ( route, model.route ) of
+                ( AreasRoute _ _, AreasRoute _ _ ) ->
+                    True
+
+                ( SectorsRoute _ _, SectorsRoute _ _ ) ->
+                    True
+
+                ( RoutesRoute _ _, RoutesRoute _ _ ) ->
+                    True
+
+                ( AscentsRoute _ _, AscentsRoute _ _ ) ->
+                    True
+
+                _ ->
+                    model.route == route
 
         navLink : Route -> { url : String, caption : String } -> Html msg
         navLink route { url, caption } =
@@ -81,17 +95,17 @@ viewPage model =
             HomeRoute ->
                 viewHome model
 
-            RoutesRoute ->
-                GenericItemPage.viewItemPage ClimbingRouteItem model
+            RoutesRoute _ _ ->
+                ItemPage.viewItemPage ClimbingRouteItem model
 
-            AscentsRoute ->
-                GenericItemPage.viewItemPage AscentItem model
+            AscentsRoute _ _ ->
+                ItemPage.viewItemPage AscentItem model
 
-            SectorsRoute ->
-                GenericItemPage.viewItemPage SectorItem model
+            SectorsRoute _ _ ->
+                ItemPage.viewItemPage SectorItem model
 
-            AreasRoute ->
-                GenericItemPage.viewItemPage AreaItem model
+            AreasRoute _ _ ->
+                ItemPage.viewItemPage AreaItem model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

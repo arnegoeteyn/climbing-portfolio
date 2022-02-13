@@ -1,21 +1,22 @@
-module View.Page.GenericItemPage exposing (..)
+module View.Page.ItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
 import Date
 import DatePicker
 import Dict exposing (Dict(..))
 import Html
-import Html.Styled exposing (Html, button, div, h2, li, option, select, table, td, text, tr, ul)
+import Html.Styled exposing (Html, button, div, h2, option, select, table, td, text, tr)
 import Html.Styled.Attributes exposing (value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Message exposing (ClimbingRouteMsg(..), CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
+import Init
+import Message exposing (CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
-import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getDataFromItem)
+import Utilities.ItemPageUtilities as ItemPageUtilities
 import View.Components.Table as Table
-import View.Widget.GenericItemCard as GenericItemCard
+import View.Widget.ItemCard as GenericItemCard
 
 
 viewItemForm : ItemPageModel -> Model -> Html Msg
@@ -65,7 +66,7 @@ viewItemForm itemPageModel model =
                                 |> Html.Styled.fromUnstyled
 
         maybeParentCriterium =
-            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
+            Init.getRelationFromItem itemPageModel.itemType
                 |> .parent
                 |> Maybe.map
                     (\parentItem ->
@@ -74,8 +75,7 @@ viewItemForm itemPageModel model =
                             ]
                         <|
                             option [ value "" ] [ text "" ]
-                                :: (getDataFromItem parentItem model
-                                        |> Dict.values
+                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model) model
                                         |> List.map
                                             (\item ->
                                                 option
@@ -96,19 +96,19 @@ viewItemForm itemPageModel model =
 viewItemPage : Item -> Model -> Html Msg
 viewItemPage item model =
     let
-        items =
-            getDataFromItem item model
-
         itemPageModel =
             ItemPageUtilities.getModelFromItem item model
+
+        items =
+            ItemPageUtilities.sortedItems itemPageModel model
     in
     div []
         [ viewAddItemButton itemPageModel
             model
         , div
-            [ css [ Tw.grid, Tw.grid_cols_2 ] ]
-            [ viewItemList items itemPageModel model
-            , sidePanelView itemPageModel model
+            [ css [ Tw.flex, Tw.flex_row, Tw.h_screen ] ]
+            [ div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ viewItemList items itemPageModel model ]
+            , div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ sidePanelView itemPageModel model ]
             ]
         ]
 
@@ -124,7 +124,7 @@ sidePanelView itemPageModel model =
 
 
 viewAddItemButton : ItemPageModel -> Model -> Html Msg
-viewAddItemButton itemPageModel model =
+viewAddItemButton itemPageModel _ =
     let
         addButton =
             button [ onClick (ItemPage itemPageModel.itemType CreateNewItem) ] [ text "New" ]
@@ -146,11 +146,11 @@ viewAddItemButton itemPageModel model =
                 ]
 
 
-viewItemList : Dict Int ItemPageItem -> ItemPageModel -> Model -> Html Msg
-viewItemList items itemPageModel model =
+viewItemList : List ItemPageItem -> ItemPageModel -> Model -> Html Msg
+viewItemList items itemPageModel _ =
     let
         headers =
-            (Dict.values >> List.head) items |> Maybe.map .tableValues |> Maybe.withDefault []
+            List.head items |> Maybe.map .tableValues |> Maybe.withDefault []
 
         filteredItems =
             List.filter
@@ -166,7 +166,7 @@ viewItemList items itemPageModel model =
                         True
                         itemPageModel.filters
                 )
-                (Dict.values items)
+                items
     in
     div []
         [ h2 [] [ text <| String.fromInt (List.length filteredItems) ++ " items" ]
@@ -188,7 +188,10 @@ viewItemList items itemPageModel model =
             , Html.Styled.tbody [ Table.tableBodyProperties ] <|
                 List.map
                     (\item ->
-                        tr [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id) ] <|
+                        tr
+                            [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id)
+                            ]
+                        <|
                             List.map
                                 (\( _, value ) -> td [] [ text value ])
                                 item.tableValues

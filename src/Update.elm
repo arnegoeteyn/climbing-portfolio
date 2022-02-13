@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (AscentKind(..), ClimbingRouteKind(..), Sector, ascentKindDecoder, climbingRouteKindDecoder, encodedJsonFile, jsonFileDecoder)
+import Data exposing (AscentKind(..), ClimbingRouteKind(..), encodedJsonFile, jsonFileDecoder)
 import Date
 import DatePicker
 import Dict exposing (Dict)
@@ -10,15 +10,17 @@ import File
 import File.Download
 import File.Select
 import Init exposing (parseUrl)
-import Json.Decode exposing (decodeString, maybe)
+import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemPageMsg(..), Msg(..))
-import Model exposing (AppState(..), FormState(..), ItemPageItemForm, Model)
+import Message exposing (Item(..), ItemPageMsg(..), Msg(..), Route(..))
+import Model exposing (AppState(..), FormState(..), Model)
 import Set
 import Task
+import Update.Home
 import Update.ItemPage
 import Url
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getItemFromRoute, setItemPageModel)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -28,7 +30,30 @@ update msg model =
             ( model, Cmd.none )
 
         ChangedUrl url ->
-            ( { model | route = parseUrl url }, Cmd.none )
+            let
+                parsedRoute =
+                    parseUrl url
+
+                maybeItemPageModel =
+                    Maybe.map (\item -> ItemPageUtilities.getModelFromItem item model) <| getItemFromRoute parsedRoute
+
+                maybeParams =
+                    maybeItemPageModel
+                        |> Maybe.map
+                            (\itemPageModel -> ItemPageUtilities.paramsFromRoute itemPageModel.form parsedRoute)
+
+                updatedModel =
+                    { model | route = parseUrl url, url = url }
+
+                updatedItemPageModel =
+                    Maybe.map2 ItemPageUtilities.updateItemPageModelWithParams maybeItemPageModel maybeParams
+            in
+            ( Maybe.map
+                (\itemPageModel -> ItemPageUtilities.setItemPageModel itemPageModel updatedModel)
+                updatedItemPageModel
+                |> Maybe.withDefault updatedModel
+            , Cmd.none
+            )
 
         ClickedLink urlRequest ->
             case urlRequest of
@@ -71,8 +96,11 @@ update msg model =
             in
             ( model, File.Download.string "result.json" "application/json" result )
 
+        ItemPage item itemPageMsg ->
+            Update.ItemPage.update itemPageMsg item model
+
         Home homeMsg ->
-            ( model, Cmd.none )
+            Update.Home.update homeMsg model
 
         DeleteItem item id ->
             let
@@ -115,28 +143,28 @@ update msg model =
                         ClimbingRouteItem ->
                             let
                                 ( newClimbingRoute, modifiedSectors ) =
-                                    climbingRouteFromForm model form
+                                    ItemFormUtilities.climbingRouteFromForm model form
                             in
                             { model | climbingRoutes = Dict.insert newClimbingRoute.id newClimbingRoute model.climbingRoutes, sectors = modifiedSectors }
 
                         SectorItem ->
                             let
                                 ( newSector, modifiedAreas ) =
-                                    sectorFromForm model form
+                                    ItemFormUtilities.sectorFromForm model form
                             in
                             { model | sectors = Dict.insert newSector.id newSector model.sectors, areas = modifiedAreas }
 
                         AscentItem ->
                             let
                                 ( newAscent, modifiedRoutes ) =
-                                    ascentFromForm model form
+                                    ItemFormUtilities.ascentFromForm model form
                             in
                             { model | ascents = Dict.insert newAscent.id newAscent model.ascents, climbingRoutes = modifiedRoutes }
 
                         AreaItem ->
                             let
                                 newArea =
-                                    areaFromForm model form
+                                    ItemFormUtilities.areaFromForm model form
                             in
                             { model | areas = Dict.insert newArea.id newArea model.areas }
             in
@@ -157,9 +185,6 @@ update msg model =
                             ( model, Cmd.none )
             in
             ( { newModel | datePicker = newDatePicker }, newCmd )
-
-        ItemPage item itemPageMsg ->
-            Update.ItemPage.update itemPageMsg item model
 
 
 type alias ModelData =
@@ -232,130 +257,3 @@ deleteAscent model ids =
             Dict.filter (\_ value -> not <| Set.member value.id ids) model.ascents
     in
     { areas = model.areas, sectors = model.sectors, climbingRoutes = model.climbingRoutes, ascents = newAscents }
-
-
-getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
-getCriteriumValueFromForm key form =
-    Dict.get key form.criteria |> Maybe.map .value
-
-
-climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
-climbingRouteFromForm model form =
-    let
-        newRouteId =
-            ItemPageUtilities.getNewIdFromFrom form model.climbingRoutes
-
-        maybeSector =
-            ItemPageUtilities.getParentFromForm form model.sectors
-
-        maybeKind =
-            getCriteriumValueFromForm "kind" form
-
-        modifiedSectors =
-            ItemPageUtilities.modifiedParentCollection newRouteId
-                maybeSector
-                .routeIds
-                (\newIds sector -> { sector | routeIds = newIds })
-                model.sectors
-
-        maybeName =
-            getCriteriumValueFromForm "name" form
-
-        maybeGrade =
-            getCriteriumValueFromForm "grade" form
-
-        maybeComment =
-            getCriteriumValueFromForm "comment" form
-    in
-    ( { id = newRouteId
-      , sectorId = Maybe.map .id maybeSector
-      , name = Maybe.withDefault "" maybeName
-      , grade = Maybe.withDefault "" maybeGrade
-      , comment = maybeComment
-      , ascentIds = Just Set.empty
-      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString climbingRouteKindDecoder) maybeKind |> Maybe.withDefault Sport
-      }
-    , modifiedSectors
-    )
-
-
-sectorFromForm : Model -> ItemPageItemForm -> ( Data.Sector, Dict.Dict Int Data.Area )
-sectorFromForm model form =
-    let
-        newSectorId =
-            ItemPageUtilities.getNewIdFromFrom form model.sectors
-
-        maybeArea =
-            ItemPageUtilities.getParentFromForm form model.areas
-
-        modifiedAreas =
-            ItemPageUtilities.modifiedParentCollection newSectorId
-                maybeArea
-                .sectorIds
-                (\newIds area -> { area | sectorIds = newIds })
-                model.areas
-
-        maybeName =
-            getCriteriumValueFromForm "name" form
-    in
-    ( { id = newSectorId
-      , name = Maybe.withDefault "" maybeName
-      , routeIds = Nothing
-      , areaId = Maybe.map .id maybeArea
-      }
-    , modifiedAreas
-    )
-
-
-ascentFromForm : Model -> ItemPageItemForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
-ascentFromForm model form =
-    let
-        newAscentId =
-            ItemPageUtilities.getNewIdFromFrom form model.ascents
-
-        maybeRoute =
-            ItemPageUtilities.getParentFromForm form model.climbingRoutes
-
-        modifiedRoutes =
-            ItemPageUtilities.modifiedParentCollection newAscentId
-                maybeRoute
-                .ascentIds
-                (\newIds route -> { route | ascentIds = newIds })
-                model.climbingRoutes
-
-        maybeComment =
-            getCriteriumValueFromForm "comment" form
-
-        maybeDate =
-            getCriteriumValueFromForm "date" form
-
-        maybeKind =
-            getCriteriumValueFromForm "kind" form
-    in
-    ( { id = newAscentId
-      , comment = maybeComment
-      , date = maybeDate
-      , routeId = Maybe.map .id maybeRoute
-      , kind = Maybe.andThen (Result.toMaybe << Json.Decode.decodeString ascentKindDecoder) maybeKind |> Maybe.withDefault Redpoint
-      }
-    , modifiedRoutes
-    )
-
-
-areaFromForm : Model -> ItemPageItemForm -> Data.Area
-areaFromForm model form =
-    let
-        newAreaId =
-            ItemPageUtilities.getNewIdFromFrom form model.areas
-
-        maybeName =
-            getCriteriumValueFromForm "name" form
-
-        maybeCountry =
-            getCriteriumValueFromForm "country" form
-    in
-    { id = newAreaId
-    , name = Maybe.withDefault "" maybeName
-    , country = Maybe.withDefault "" maybeCountry
-    , sectorIds = Nothing
-    }

@@ -1,6 +1,7 @@
 module Message exposing (..)
 
 import Browser
+import Chart.Item as CI
 import DatePicker
 import File exposing (File)
 import Url exposing (Url)
@@ -8,10 +9,10 @@ import Url exposing (Url)
 
 type Route
     = HomeRoute
-    | AscentsRoute
-    | RoutesRoute
-    | SectorsRoute
-    | AreasRoute
+    | AscentsRoute (Maybe Int) (Maybe String)
+    | RoutesRoute (Maybe Int) (Maybe String) -- selected, criteria
+    | SectorsRoute (Maybe Int) (Maybe String)
+    | AreasRoute (Maybe Int) (Maybe String)
     | NotFoundRoute
 
 
@@ -46,7 +47,7 @@ type Msg
 
 
 type HomeMsg
-    = None
+    = OnHover (List (CI.One { x : Float, y : Float, z : String } CI.Bar))
 
 
 type ItemPageMsg
@@ -61,11 +62,3 @@ type ItemPageMsg
 type CriteriumUpdate
     = UpdateParent String
     | UpdateKey String String
-
-
-type ClimbingRouteMsg
-    = AddAscentButtonClicked
-
-
-type SectorMsg
-    = NoneSector

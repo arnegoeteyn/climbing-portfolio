@@ -2,31 +2,35 @@ module Init exposing (..)
 
 import Browser.Navigation exposing (Key)
 import Data exposing (jsonFileDecoder)
-import DatePicker exposing (DatePicker)
+import DatePicker
 import Dict
-import Html.Attributes exposing (type_)
 import Json.Decode exposing (decodeString)
-import Message exposing (ClimbingRouteMsg(..), Item(..), ItemRelation, Msg(..), Route(..))
+import Message exposing (Item(..), ItemRelation, Msg(..), Route(..))
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
-import Url.Parser as Parser exposing (Parser)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser)
+import Url.Parser.Query as Query
 import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities.ItemPageUtilities exposing (paramsFromRoute)
 
 
 init : String -> Url -> Key -> ( Model, Cmd Msg )
 init storageCache url key =
     let
+        parsedUrl =
+            parseUrl url
+
         ( climbingRoutesModel, routesCmd ) =
-            itemPageModel ClimbingRouteItem
+            itemPageModel ClimbingRouteItem parsedUrl
 
         ( sectorsModel, sectorsCmd ) =
-            itemPageModel SectorItem
+            itemPageModel SectorItem parsedUrl
 
         ( ascentsModel, ascentsCmd ) =
-            itemPageModel AscentItem
+            itemPageModel AscentItem parsedUrl
 
         ( areasModel, areasCmd ) =
-            itemPageModel AreaItem
+            itemPageModel AreaItem parsedUrl
 
         ( datePicker, datePickerCmd ) =
             DatePicker.init
@@ -43,7 +47,8 @@ init storageCache url key =
                     Model.Ready
 
                 Result.Err _ ->
-                    Model.NotReady
+                    -- appstate can just default to empty dictionaries
+                    Model.Ready
       , url = url
       , route = parseUrl url
       , key = key
@@ -52,6 +57,7 @@ init storageCache url key =
       , sectors = jsonFile.sectors
       , areas = jsonFile.areas
       , climbingRoutesModel = climbingRoutesModel
+      , homeModel = { hovering = [] }
       , sectorsModel = sectorsModel
       , ascentsModel = ascentsModel
       , areasModel = areasModel
@@ -61,8 +67,24 @@ init storageCache url key =
     )
 
 
-itemPageModel : Item -> ( ItemPageModel, Cmd Msg )
-itemPageModel t =
+getRelationFromItem : Item -> ItemRelation
+getRelationFromItem item =
+    case item of
+        ClimbingRouteItem ->
+            climbingRouteRelations
+
+        AscentItem ->
+            ascentRelations
+
+        SectorItem ->
+            sectorRelations
+
+        AreaItem ->
+            areaRelations
+
+
+itemPageModel : Item -> Route -> ( ItemPageModel, Cmd Msg )
+itemPageModel t route =
     let
         form =
             case t of
@@ -77,11 +99,15 @@ itemPageModel t =
 
                 AreaItem ->
                     areaForm
+
+        ( selectedItem, criteria, formState ) =
+            paramsFromRoute form route
     in
-    ( { form = form
+    ( { form = { form | criteria = criteria, formState = formState }
       , itemType = t
-      , selectedItemId = Nothing
+      , selectedItemId = selectedItem
       , filters = Dict.empty
+      , sortOnColumn = Just 0
       }
     , Cmd.none
     )
@@ -155,10 +181,10 @@ routeParser : Parser (Route -> a) a
 routeParser =
     Parser.oneOf
         [ Parser.map HomeRoute Parser.top
-        , Parser.map RoutesRoute (Parser.s "routes")
-        , Parser.map AscentsRoute (Parser.s "ascents")
-        , Parser.map SectorsRoute (Parser.s "sectors")
-        , Parser.map AreasRoute (Parser.s "areas")
+        , Parser.map RoutesRoute (Parser.s "routes" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map AreasRoute (Parser.s "areas" <?> Query.int "selected" <?> Query.string "criteria")
         ]
 
 

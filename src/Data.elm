@@ -87,6 +87,7 @@ climbingRouteKindDecoder =
             )
 
 
+climbingRouteKindToString : ClimbingRouteKind -> String
 climbingRouteKindToString kind =
     case kind of
         Sport ->
@@ -185,6 +186,7 @@ encodeAscentKind =
     Json.Encode.string << ascentKindToString
 
 
+ascentKindToString : AscentKind -> String
 ascentKindToString kind =
     case kind of
         Redpoint ->
@@ -276,3 +278,34 @@ encodeArea area =
         , ( "country", Json.Encode.string area.country )
         , ( "sectorIds", encodeNullable (Json.Encode.set Json.Encode.int) area.sectorIds )
         ]
+
+
+type alias CriteriumValue =
+    { key : String
+    , value : String
+    }
+
+
+criteriumValueDecoder : Json.Decode.Decoder CriteriumValue
+criteriumValueDecoder =
+    Json.Decode.succeed CriteriumValue
+        |> required "key" string
+        |> required "value" string
+
+
+criteriumValueListDecoder : Json.Decode.Decoder (List CriteriumValue)
+criteriumValueListDecoder =
+    Json.Decode.list criteriumValueDecoder
+
+
+encodeCriteriumValue : CriteriumValue -> Json.Encode.Value
+encodeCriteriumValue criteriumValue =
+    Json.Encode.object
+        [ ( "key", Json.Encode.string criteriumValue.key )
+        , ( "value", Json.Encode.string criteriumValue.value )
+        ]
+
+
+encodeCriteriumValueList : List CriteriumValue -> Json.Encode.Value
+encodeCriteriumValueList l =
+    Json.Encode.list encodeCriteriumValue l
