@@ -1,15 +1,11 @@
 module View.Page.ItemPage exposing (..)
 
 import Data exposing (ItemPageItem)
-import Date
-import DatePicker
 import Dict exposing (Dict(..))
-import Html
-import Html.Styled exposing (Html, button, div, h2, option, select, table, td, text, tr)
+import Html.Styled exposing (Html, button, div, h2, table, td, text, tr)
 import Html.Styled.Attributes exposing (value)
-import Html.Styled.Events exposing (onClick, onInput)
-import Init
-import Message exposing (CriteriumUpdate(..), Item, ItemPageMsg(..), Msg(..))
+import Html.Styled.Events exposing (onClick)
+import Message exposing (CriteriumUpdate(..), ItemPageMsg(..), ItemType, Msg(..))
 import Model exposing (FormState(..), ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
@@ -17,84 +13,11 @@ import Utilities exposing (viewInput)
 import Utilities.ItemPageUtilities as ItemPageUtilities
 import View.Components.Table as Table
 import View.Widget.ItemCard as GenericItemCard
+import View.Widget.ItemForm as ItemForm
 
 
-viewItemForm : ItemPageModel -> Model -> Html Msg
-viewItemForm itemPageModel model =
-    let
-        viewCriterium criteria key =
-            let
-                maybeCriterium =
-                    Dict.get key criteria
-            in
-            case maybeCriterium of
-                Nothing ->
-                    div [] []
-
-                Just criterium ->
-                    case criterium.type_ of
-                        Model.String ->
-                            viewInput "text" criterium.label criterium.value (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
-
-                        Model.Enumeration options ->
-                            select
-                                [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateKey key value))
-                                ]
-                            <|
-                                (options
-                                    |> List.map
-                                        (\item ->
-                                            option
-                                                [ value item
-                                                , Html.Styled.Attributes.selected <| item == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get key itemPageModel.form.criteria)
-                                                ]
-                                                [ text item ]
-                                        )
-                                )
-
-                        Model.Date ->
-                            DatePicker.view
-                                (if String.isEmpty criterium.value then
-                                    Nothing
-
-                                 else
-                                    Date.fromIsoString criterium.value |> Result.toMaybe
-                                )
-                                DatePicker.defaultSettings
-                                model.datePicker
-                                |> Html.map (ToDatePicker itemPageModel.itemType key)
-                                |> Html.Styled.fromUnstyled
-
-        maybeParentCriterium =
-            Init.getRelationFromItem itemPageModel.itemType
-                |> .parent
-                |> Maybe.map
-                    (\parentItem ->
-                        select
-                            [ onInput (\value -> ItemPage itemPageModel.itemType (FormUpdateMessage <| UpdateParent value))
-                            ]
-                        <|
-                            option [ value "" ] [ text "" ]
-                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model) model
-                                        |> List.map
-                                            (\item ->
-                                                option
-                                                    [ value <| String.fromInt item.id
-                                                    , Html.Styled.Attributes.selected <| String.fromInt item.id == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get "_parentId" itemPageModel.form.criteria)
-                                                    ]
-                                                    [ text item.identifier ]
-                                            )
-                                   )
-                    )
-    in
-    div []
-        [ div [ css [ Tw.flex, Tw.flex_col ] ] <| List.map (viewCriterium itemPageModel.form.criteria) itemPageModel.form.order
-        , div [] [ Maybe.withDefault (text "") maybeParentCriterium ]
-        ]
-
-
-viewItemPage : Item -> Model -> Html Msg
-viewItemPage item model =
+view : ItemType -> Model -> Html Msg
+view item model =
     let
         itemPageModel =
             ItemPageUtilities.getModelFromItem item model
@@ -120,7 +43,7 @@ sidePanelView itemPageModel model =
             div [ css [ Tw.flex, Tw.justify_center ] ] [ GenericItemCard.view itemPageModel model ]
 
         _ ->
-            viewItemForm itemPageModel model
+            ItemForm.view itemPageModel model
 
 
 viewAddItemButton : ItemPageModel -> Model -> Html Msg

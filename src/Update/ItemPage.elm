@@ -1,13 +1,13 @@
 module Update.ItemPage exposing (..)
 
 import Dict exposing (Dict)
-import Message exposing (CriteriumUpdate(..), Item(..), ItemPageMsg(..), Msg, Route(..))
+import Message exposing (CriteriumUpdate(..), ItemPageMsg(..), ItemType(..), Msg, Route(..))
 import Model exposing (Criterium, Model)
 import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
 
 
-update : ItemPageMsg -> Item -> Model -> ( Model, Cmd Msg )
+update : ItemPageMsg -> ItemType -> Model -> ( Model, Cmd Msg )
 update msg item model =
     let
         itemPageModel =

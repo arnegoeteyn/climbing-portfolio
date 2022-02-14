@@ -3,7 +3,7 @@ module Utilities.ItemFormUtilities exposing (..)
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Json.Decode
-import Message exposing (Item(..))
+import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
 import Set
 import Utilities
@@ -14,7 +14,7 @@ closeForm form =
     { form | formState = Hidden }
 
 
-getFormFromItem : Item -> Model -> ItemPageItemForm
+getFormFromItem : ItemType -> Model -> ItemPageItemForm
 getFormFromItem item model =
     case item of
         AreaItem ->
@@ -35,7 +35,7 @@ parentIdAccessor parentId =
     Utilities.maybeAccessor (parentId >> Maybe.map String.fromInt >> Maybe.withDefault "")
 
 
-getCriteriaFromItem : Int -> Item -> Model -> Criteria
+getCriteriaFromItem : Int -> ItemType -> Model -> Criteria
 getCriteriaFromItem requestId itemType model =
     case itemType of
         ClimbingRouteItem ->

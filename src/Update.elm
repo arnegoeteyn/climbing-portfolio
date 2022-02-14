@@ -12,7 +12,7 @@ import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (Item(..), ItemPageMsg(..), Msg(..), Route(..))
+import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..), Route(..))
 import Model exposing (AppState(..), FormState(..), Model)
 import Set
 import Task
