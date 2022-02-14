@@ -4,7 +4,7 @@ import Html exposing (Html)
 import Html.Styled exposing (Html, a, button, div, h1, nav, text, toUnstyled)
 import Html.Styled.Attributes exposing (css, href)
 import Html.Styled.Events exposing (onClick)
-import Message exposing (Item(..), Msg(..), Route(..))
+import Message exposing (ItemType(..), Msg(..), Route(..))
 import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
@@ -96,16 +96,16 @@ viewPage model =
                 viewHome model
 
             RoutesRoute _ _ ->
-                ItemPage.viewItemPage ClimbingRouteItem model
+                ItemPage.view ClimbingRouteItem model
 
             AscentsRoute _ _ ->
-                ItemPage.viewItemPage AscentItem model
+                ItemPage.view AscentItem model
 
             SectorsRoute _ _ ->
-                ItemPage.viewItemPage SectorItem model
+                ItemPage.view SectorItem model
 
             AreasRoute _ _ ->
-                ItemPage.viewItemPage AreaItem model
+                ItemPage.view AreaItem model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

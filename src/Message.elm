@@ -16,7 +16,7 @@ type Route
     | NotFoundRoute
 
 
-type Item
+type ItemType
     = ClimbingRouteItem
     | AscentItem
     | SectorItem
@@ -24,8 +24,8 @@ type Item
 
 
 type alias ItemRelation =
-    { parent : Maybe Item
-    , child : Maybe Item
+    { parent : Maybe ItemType
+    , child : Maybe ItemType
     }
 
 
@@ -35,15 +35,15 @@ type Msg
     | JsonSelected File
     | JsonLoaded String
     | ExportRequested
-    | SaveItemRequested Item
-    | DeleteItem Item Int
-    | ToDatePicker Item String DatePicker.Msg
+    | SaveItemRequested ItemType
+    | DeleteItem ItemType Int
+    | ToDatePicker ItemType String DatePicker.Msg
       -- router
     | ClickedLink Browser.UrlRequest
     | ChangedUrl Url
       -- Pages
     | Home HomeMsg
-    | ItemPage Item ItemPageMsg
+    | ItemPage ItemType ItemPageMsg
 
 
 type HomeMsg

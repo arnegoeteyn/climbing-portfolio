@@ -5,7 +5,7 @@ import Chart.Item as CI
 import Data exposing (Area, Ascent, ClimbingRoute, Sector)
 import DatePicker
 import Dict exposing (Dict)
-import Message exposing (Item, Route)
+import Message exposing (ItemType, Route)
 import Url exposing (Url)
 
 
@@ -33,7 +33,7 @@ type AppState
 
 
 type alias ItemPageModel =
-    { itemType : Item
+    { itemType : ItemType
     , form : ItemPageItemForm
     , selectedItemId : Maybe Int
     , filters : Dict String String

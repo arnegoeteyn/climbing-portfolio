@@ -6,11 +6,10 @@ import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css, href)
 import Html.Styled.Events exposing (onClick)
 import Init exposing (itemPageModel)
-import Message exposing (Item(..), ItemPageMsg(..), Msg(..))
+import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Set
 import Tailwind.Utilities as Tw
-import Utilities.ItemFormUtilities as ItemFormUtilities
 import Utilities.ItemPageUtilities as ItemPageUtilities
 import View.Components.Buttons as Buttons
 
@@ -37,7 +36,7 @@ view itemPageModel model =
                 Just item ->
                     let
                         itemRelation =
-                            Init.getRelationFromItem itemPageModel.itemType
+                            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
 
                         maybeParent =
                             itemRelation.parent
@@ -85,11 +84,11 @@ view itemPageModel model =
                         ]
 
 
-viewChildren : ItemPageItem -> Item -> Model -> Html Msg
+viewChildren : ItemPageItem -> ItemType -> Model -> Html Msg
 viewChildren itemPageItem item model =
     let
         childRelation =
-            Init.getRelationFromItem item
+            ItemPageUtilities.getRelationFromItem item
     in
     div []
         [ case childRelation.child of

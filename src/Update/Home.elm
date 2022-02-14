@@ -1,7 +1,7 @@
 module Update.Home exposing (..)
 
 import Dict exposing (Dict)
-import Message exposing (CriteriumUpdate(..), HomeMsg(..), Item(..), ItemPageMsg(..), Msg)
+import Message exposing (CriteriumUpdate(..), HomeMsg(..), ItemPageMsg(..), ItemType(..), Msg)
 import Model exposing (Criterium, Model)
 
 

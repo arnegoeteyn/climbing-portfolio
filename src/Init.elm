@@ -5,7 +5,7 @@ import Data exposing (jsonFileDecoder)
 import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
-import Message exposing (Item(..), ItemRelation, Msg(..), Route(..))
+import Message exposing (ItemType(..), Msg(..), Route(..))
 import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
@@ -67,23 +67,7 @@ init storageCache url key =
     )
 
 
-getRelationFromItem : Item -> ItemRelation
-getRelationFromItem item =
-    case item of
-        ClimbingRouteItem ->
-            climbingRouteRelations
-
-        AscentItem ->
-            ascentRelations
-
-        SectorItem ->
-            sectorRelations
-
-        AreaItem ->
-            areaRelations
-
-
-itemPageModel : Item -> Route -> ( ItemPageModel, Cmd Msg )
+itemPageModel : ItemType -> Route -> ( ItemPageModel, Cmd Msg )
 itemPageModel t route =
     let
         form =
@@ -113,13 +97,6 @@ itemPageModel t route =
     )
 
 
-climbingRouteRelations : ItemRelation
-climbingRouteRelations =
-    { parent = Just SectorItem
-    , child = Just AscentItem
-    }
-
-
 climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
     { criteria = ItemFormUtilities.toClimbingRouteFormCriteria Nothing
@@ -138,13 +115,6 @@ ascentForm =
     }
 
 
-ascentRelations : ItemRelation
-ascentRelations =
-    { parent = Just ClimbingRouteItem
-    , child = Nothing
-    }
-
-
 sectorForm : ItemPageItemForm
 sectorForm =
     { criteria = ItemFormUtilities.toSectorFormCriteria Nothing
@@ -154,26 +124,12 @@ sectorForm =
     }
 
 
-sectorRelations : ItemRelation
-sectorRelations =
-    { parent = Just AreaItem
-    , child = Just ClimbingRouteItem
-    }
-
-
 areaForm : ItemPageItemForm
 areaForm =
     { criteria = ItemFormUtilities.toAreaFormCriteria Nothing
     , order = [ "name", "country" ]
     , parentId = Nothing
     , formState = Hidden
-    }
-
-
-areaRelations : ItemRelation
-areaRelations =
-    { parent = Nothing
-    , child = Just SectorItem
     }
 
 
