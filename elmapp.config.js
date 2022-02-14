@@ -1,3 +1,3 @@
 module.exports = {
-    homepage: "https://climbing-portfolio.pages.dev/"
+    homepage: "https://climbing-portfolio.netlify.app"
 }
