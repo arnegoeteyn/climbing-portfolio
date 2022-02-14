@@ -1,3 +1,22 @@
-"scripts": {
-    "build": "elm-app build",
+{
+  "name": "climb-portfolio",
+  "version": "0.0.1",
+  "description": "",
+  "main": "elmapp.config.js",
+  "scripts": {
+    "build": "elm-app build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arnegoeteyn/climbing-portfolio.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arnegoeteyn/climbing-portfolio/issues"
+  },
+  "homepage": "https://github.com/arnegoeteyn/climbing-portfolio#readme",
+  "devDependencies": {
+    "create-elm-app": "^5.22.0"
+  }
 }
