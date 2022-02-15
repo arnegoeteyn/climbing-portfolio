@@ -1,4 +1,4 @@
-module View.Widget.ItemCard exposing (..)
+module View.Widget.EntityCard exposing (..)
 
 import Data exposing (ItemPageItem)
 import Dict
@@ -10,7 +10,8 @@ import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..))
 import Model exposing (ItemPageModel, Model)
 import Set
 import Tailwind.Utilities as Tw
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.EntityPageUtilities as ItemPageUtilities
+import Utilities.EntityUtilities as EntityUtilities
 import View.Components.Buttons as Buttons
 
 
@@ -35,11 +36,8 @@ view itemPageModel model =
 
                 Just item ->
                     let
-                        itemRelation =
-                            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
-
                         maybeParent =
-                            itemRelation.parent
+                            EntityUtilities.getParent itemPageModel.itemType
                                 |> Maybe.map (\parent -> ItemPageUtilities.getDataFromItem parent model)
                                 |> Maybe.map2 (\parentId parentItems -> Dict.get parentId parentItems) item.parentId
                                 |> Maybe.andThen identity
@@ -86,12 +84,8 @@ view itemPageModel model =
 
 viewChildren : ItemPageItem -> ItemType -> Model -> Html Msg
 viewChildren itemPageItem item model =
-    let
-        childRelation =
-            ItemPageUtilities.getRelationFromItem item
-    in
     div []
-        [ case childRelation.child of
+        [ case EntityUtilities.getChild item of
             Just childItemType ->
                 let
                     childCollection =
@@ -115,7 +109,7 @@ viewChildren itemPageItem item model =
 
             Nothing ->
                 div [] []
-        , childRelation.child
+        , EntityUtilities.getChild item
             |> Maybe.map
                 (\child ->
                     a

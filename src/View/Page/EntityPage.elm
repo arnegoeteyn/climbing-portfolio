@@ -1,4 +1,4 @@
-module View.Page.ItemPage exposing (..)
+module View.Page.EntityPage exposing (..)
 
 import Data exposing (ItemPageItem)
 import Dict exposing (Dict(..))
@@ -10,20 +10,20 @@ import Model exposing (FormState(..), ItemPageModel, Model)
 import Svg.Styled.Attributes exposing (css)
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.EntityPageUtilities as EntityPageUtilities
 import View.Components.Table as Table
-import View.Widget.ItemCard as GenericItemCard
-import View.Widget.ItemForm as ItemForm
+import View.Widget.EntityCard as GenericItemCard
+import View.Widget.EntityForm as ItemForm
 
 
 view : ItemType -> Model -> Html Msg
 view item model =
     let
         itemPageModel =
-            ItemPageUtilities.getModelFromItem item model
+            EntityPageUtilities.getModelFromItem item model
 
         items =
-            ItemPageUtilities.sortedItems itemPageModel model
+            EntityPageUtilities.sortedItems itemPageModel model
     in
     div []
         [ viewAddItemButton itemPageModel

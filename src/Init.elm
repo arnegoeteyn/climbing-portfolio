@@ -10,8 +10,8 @@ import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
-import Utilities.ItemFormUtilities as ItemFormUtilities
-import Utilities.ItemPageUtilities exposing (paramsFromRoute)
+import Utilities.EntityFormUtilities as EntityFormUtilities
+import Utilities.EntityPageUtilities as EntityPageUtilities
 
 
 init : String -> Url -> Key -> ( Model, Cmd Msg )
@@ -85,7 +85,7 @@ itemPageModel t route =
                     areaForm
 
         ( selectedItem, criteria, formState ) =
-            paramsFromRoute form route
+            EntityPageUtilities.paramsFromRoute form route
     in
     ( { form = { form | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }
       , itemType = t
@@ -99,7 +99,7 @@ itemPageModel t route =
 
 climbingRouteForm : ItemPageItemForm
 climbingRouteForm =
-    { criteria = ItemFormUtilities.toClimbingRouteFormCriteria Nothing
+    { criteria = EntityFormUtilities.toClimbingRouteFormCriteria Nothing
     , order = [ "name", "grade", "kind", "comment" ]
     , parentId = Nothing
     , formState = Hidden
@@ -108,7 +108,7 @@ climbingRouteForm =
 
 ascentForm : ItemPageItemForm
 ascentForm =
-    { criteria = ItemFormUtilities.toAscentFormCriteria Nothing
+    { criteria = EntityFormUtilities.toAscentFormCriteria Nothing
     , order = [ "date", "comment", "kind" ]
     , parentId = Nothing
     , formState = Hidden
@@ -117,7 +117,7 @@ ascentForm =
 
 sectorForm : ItemPageItemForm
 sectorForm =
-    { criteria = ItemFormUtilities.toSectorFormCriteria Nothing
+    { criteria = EntityFormUtilities.toSectorFormCriteria Nothing
     , order = [ "name" ]
     , parentId = Nothing
     , formState = Hidden
@@ -126,7 +126,7 @@ sectorForm =
 
 areaForm : ItemPageItemForm
 areaForm =
-    { criteria = ItemFormUtilities.toAreaFormCriteria Nothing
+    { criteria = EntityFormUtilities.toAreaFormCriteria Nothing
     , order = [ "name", "country" ]
     , parentId = Nothing
     , formState = Hidden

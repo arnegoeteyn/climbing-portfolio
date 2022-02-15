@@ -1,4 +1,4 @@
-module View.Widget.ItemForm exposing (..)
+module View.Widget.EntityForm exposing (..)
 
 import Date
 import DatePicker
@@ -11,7 +11,8 @@ import Message exposing (Msg)
 import Model exposing (ItemPageModel, Model)
 import Tailwind.Utilities as Tw
 import Utilities
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.EntityPageUtilities as ItemPageUtilities
+import Utilities.EntityUtilities as EntityUtilities
 
 
 view : ItemPageModel -> Model -> Html Msg
@@ -61,8 +62,7 @@ view itemPageModel model =
                                 |> H.fromUnstyled
 
         maybeParentCriterium =
-            ItemPageUtilities.getRelationFromItem itemPageModel.itemType
-                |> .parent
+            EntityUtilities.getParent itemPageModel.itemType
                 |> Maybe.map
                     (\parentItem ->
                         H.select

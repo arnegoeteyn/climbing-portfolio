@@ -1,15 +1,16 @@
-module Utilities.ItemPageUtilities exposing (..)
+module Utilities.EntityPageUtilities exposing (..)
 
 import Array
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), CriteriumValue, ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ItemRelation, ItemType(..), Route(..))
+import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url.Builder
 import Utilities
-import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities.EntityFormUtilities as ItemFormUtilities
+import Utilities.EntityUtilities as EntityUtilities
 
 
 getItemFromRoute : Route -> Maybe ItemType
@@ -81,7 +82,7 @@ itemPageTableHeaders item =
 
 getParentName : Model -> ItemType -> Int -> String
 getParentName model itemType parentId =
-    (getRelationFromItem itemType |> .parent)
+    EntityUtilities.getParent itemType
         |> Maybe.andThen
             (\parentType ->
                 Dict.get parentId <|
@@ -92,7 +93,7 @@ getParentName model itemType parentId =
 
 
 toClimbingRouteItem : Model -> Int -> ClimbingRoute -> ItemPageItem
-toClimbingRouteItem model id climbingRoute =
+toClimbingRouteItem model _ climbingRoute =
     { cardHeader =
         List.foldr (++) "" <|
             [ climbingRoute.name, " [", climbingRoute.grade, "]" ]
@@ -311,47 +312,3 @@ updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
             (\x -> { x | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }) model.form
     in
     { model | form = form, selectedItemId = maybeSelectedId }
-
-
-getRelationFromItem : ItemType -> ItemRelation
-getRelationFromItem item =
-    case item of
-        ClimbingRouteItem ->
-            climbingRouteRelations
-
-        AscentItem ->
-            ascentRelations
-
-        SectorItem ->
-            sectorRelations
-
-        AreaItem ->
-            areaRelations
-
-
-areaRelations : ItemRelation
-areaRelations =
-    { parent = Nothing
-    , child = Just SectorItem
-    }
-
-
-sectorRelations : Message.ItemRelation
-sectorRelations =
-    { parent = Just AreaItem
-    , child = Just ClimbingRouteItem
-    }
-
-
-ascentRelations : ItemRelation
-ascentRelations =
-    { parent = Just ClimbingRouteItem
-    , child = Nothing
-    }
-
-
-climbingRouteRelations : ItemRelation
-climbingRouteRelations =
-    { parent = Just SectorItem
-    , child = Just AscentItem
-    }

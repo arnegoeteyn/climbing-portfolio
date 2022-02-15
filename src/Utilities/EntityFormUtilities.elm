@@ -1,8 +1,7 @@
-module Utilities.ItemFormUtilities exposing (..)
+module Utilities.EntityFormUtilities exposing (..)
 
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Json.Decode
 import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
 import Set
