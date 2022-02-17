@@ -112,8 +112,9 @@ viewItemList items itemPageModel _ =
                 List.map
                     (\item ->
                         tr
-                            [ onClick <| ItemPage itemPageModel.itemType (SelectItem item.id)
-                            ]
+                            ((onClick <| ItemPage itemPageModel.itemType (SelectItem item.id))
+                                :: Utilities.filterList [ ( Table.selectedRowProperties, itemPageModel.selectedItemId == Just item.id, Nothing ) ]
+                            )
                         <|
                             List.map
                                 (\( _, value ) -> td [] [ text value ])
