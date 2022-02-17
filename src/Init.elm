@@ -6,7 +6,7 @@ import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
 import Message exposing (ItemType(..), Msg(..), Route(..))
-import Model exposing (FormState(..), ItemPageItemForm, ItemPageModel, Model)
+import Model exposing (Entity, FormState(..), ItemPageItemForm, ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
@@ -103,6 +103,7 @@ climbingRouteForm =
     , order = [ "name", "grade", "kind", "comment" ]
     , parentId = Nothing
     , formState = Hidden
+    , entity = Model.Entity ClimbingRouteItem Nothing
     }
 
 
@@ -112,6 +113,7 @@ ascentForm =
     , order = [ "date", "comment", "kind" ]
     , parentId = Nothing
     , formState = Hidden
+    , entity = Model.Entity AscentItem Nothing
     }
 
 
@@ -121,6 +123,7 @@ sectorForm =
     , order = [ "name" ]
     , parentId = Nothing
     , formState = Hidden
+    , entity = Model.Entity SectorItem Nothing
     }
 
 
@@ -130,6 +133,7 @@ areaForm =
     , order = [ "name", "country" ]
     , parentId = Nothing
     , formState = Hidden
+    , entity = Model.Entity AreaItem Nothing
     }
 
 

@@ -30,12 +30,16 @@ viewEntityPage type_ model =
 
 sidePanelView : ItemType -> Model -> Html Msg
 sidePanelView type_ model =
-    case getFormFromItem type_ model |> .formState of
+    let
+        form =
+            getFormFromItem type_ model
+    in
+    case form.formState of
         Hidden ->
             div [ css [ Tw.flex, Tw.justify_center ] ] [ GenericItemCard.view type_ model ]
 
         _ ->
-            ItemForm.view (EntityPageUtilities.getModelFromItem type_ model) model
+            ItemForm.view form model
 
 
 viewAddItemButton : ItemType -> Model -> Html Msg

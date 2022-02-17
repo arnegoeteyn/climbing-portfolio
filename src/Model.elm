@@ -51,7 +51,12 @@ type alias ItemPageItemForm =
     , order : List String
     , parentId : Maybe String
     , formState : FormState
+    , entity : Entity
     }
+
+
+type alias Entity =
+    { itemType : ItemType, id : Maybe Int }
 
 
 type FormState
