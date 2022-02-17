@@ -62,7 +62,7 @@ view itemPageModel model =
                                 |> H.fromUnstyled
 
         maybeParentCriterium =
-            EntityUtilities.getParent itemPageModel.itemType
+            EntityUtilities.getParentType itemPageModel.itemType
                 |> Maybe.map
                     (\parentItem ->
                         H.select

@@ -82,7 +82,7 @@ itemPageTableHeaders item =
 
 getParentName : Model -> ItemType -> Int -> String
 getParentName model itemType parentId =
-    EntityUtilities.getParent itemType
+    EntityUtilities.getParentType itemType
         |> Maybe.andThen
             (\parentType ->
                 Dict.get parentId <|

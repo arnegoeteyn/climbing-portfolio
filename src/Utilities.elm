@@ -59,3 +59,8 @@ ifNot new maybe =
 maybeAccessor : (a -> String) -> Maybe a -> String
 maybeAccessor accessor maybeValue =
     Maybe.withDefault "" <| Maybe.map accessor maybeValue
+
+
+stringFromList : List String -> String
+stringFromList =
+    List.foldr (++) ""

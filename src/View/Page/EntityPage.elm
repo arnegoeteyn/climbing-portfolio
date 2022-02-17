@@ -40,7 +40,7 @@ sidePanelView : ItemPageModel -> Model -> Html Msg
 sidePanelView itemPageModel model =
     case itemPageModel.form.formState of
         Hidden ->
-            div [ css [ Tw.flex, Tw.justify_center ] ] [ GenericItemCard.view itemPageModel model ]
+            div [ css [ Tw.flex, Tw.justify_center ] ] [ GenericItemCard.view itemPageModel.itemType itemPageModel.selectedItemId model ]
 
         _ ->
             ItemForm.view itemPageModel model
