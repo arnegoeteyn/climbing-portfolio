@@ -64,8 +64,8 @@ getDataFromItem item model =
             Dict.map toAreaItem model.areas
 
 
-itemPageTableHeaders : ItemType -> List String
-itemPageTableHeaders item =
+entityPageTableHeaders : ItemType -> List String
+entityPageTableHeaders item =
     case item of
         ClimbingRouteItem ->
             [ "name", "grade", "kind" ]
@@ -78,6 +78,16 @@ itemPageTableHeaders item =
 
         AreaItem ->
             [ "name", "country" ]
+
+
+selectedItemId : ItemType -> Model -> Maybe Int
+selectedItemId type_ model =
+    getModelFromItem type_ model |> .selectedItemId
+
+
+activeFilters : ItemType -> Model -> Dict String String
+activeFilters type_ model =
+    getModelFromItem type_ model |> .filters
 
 
 getParentName : Model -> ItemType -> Int -> String
@@ -164,16 +174,16 @@ toAscentItem model _ ascent =
     }
 
 
-sortedItems : ItemPageModel -> Model -> List ItemPageItem
-sortedItems pageModel model =
-    getDataFromItem pageModel.itemType model
+sortedItems : ItemType -> Model -> List ItemPageItem
+sortedItems type_ model =
+    getDataFromItem type_ model
         |> Dict.toList
         |> List.map Tuple.second
         |> List.sortBy
             (\a ->
                 a.tableValues
                     |> Array.fromList
-                    |> Array.get (Maybe.withDefault 0 pageModel.sortOnColumn)
+                    |> Array.get (Maybe.withDefault 0 (getModelFromItem type_ model |> .sortOnColumn))
                     |> Maybe.map Tuple.second
                     |> Maybe.withDefault ""
                     |> String.toLower

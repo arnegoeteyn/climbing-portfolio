@@ -96,16 +96,16 @@ viewPage model =
                 viewHome model
 
             RoutesRoute _ _ ->
-                EntityPage.view ClimbingRouteItem model
+                EntityPage.viewEntityPage ClimbingRouteItem model
 
             AscentsRoute _ _ ->
-                EntityPage.view AscentItem model
+                EntityPage.viewEntityPage AscentItem model
 
             SectorsRoute _ _ ->
-                EntityPage.view SectorItem model
+                EntityPage.viewEntityPage SectorItem model
 
             AreasRoute _ _ ->
-                EntityPage.view AreaItem model
+                EntityPage.viewEntityPage AreaItem model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

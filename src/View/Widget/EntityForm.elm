@@ -70,7 +70,7 @@ view itemPageModel model =
                             ]
                         <|
                             H.option [ A.value "" ] [ H.text "" ]
-                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model) model
+                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model).itemType model
                                         |> List.map
                                             (\item ->
                                                 H.option

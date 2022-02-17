@@ -15,9 +15,9 @@ import Utilities.EntityUtilities as EntityUtilities
 import View.Components.Buttons as Buttons
 
 
-view : ItemType -> Maybe Int -> Model -> Html Msg
-view type_ selectedItemId model =
-    case selectedItemId of
+view : ItemType -> Model -> Html Msg
+view type_ model =
+    case ItemPageUtilities.selectedItemId type_ model of
         Nothing ->
             text "Nothing selected"
 
