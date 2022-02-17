@@ -1,7 +1,6 @@
 module View.Widget.EntityCard exposing (..)
 
 import Data
-import Dict
 import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css, href, type_)
 import Html.Styled.Events exposing (onClick)
@@ -24,10 +23,7 @@ view type_ model =
         Just itemId ->
             let
                 maybeParent =
-                    EntityUtilities.getParentType type_
-                        |> Maybe.map (\parent -> ItemPageUtilities.getDataFromItem parent model)
-                        |> Maybe.map2 (\parentId parentItems -> Dict.get parentId parentItems) (EntityUtilities.getParent type_ itemId model)
-                        |> Maybe.andThen identity
+                    EntityUtilities.getParent type_ itemId model
 
                 cardTailwindProperties =
                     css [ Tw.rounded_xl, Tw.shadow_lg, Tw.bg_purple_100 ]
@@ -58,7 +54,7 @@ view type_ model =
                     []
                 , header [ cardHeaderTextTWProperties ] [ viewCardTitle type_ itemId model ]
                 , div [ cardContentTWProperties ]
-                    [ p [ cardAreaDescriptionTWProperties ] [ text <| (Maybe.map (\parent -> parent.identifier) maybeParent |> Maybe.withDefault "") ]
+                    [ p [ cardAreaDescriptionTWProperties ] [ Maybe.map2 (\t p -> viewCardTitle t p model) (EntityUtilities.getParentType type_) maybeParent |> Maybe.withDefault (text "") ]
                     , p [ cardDescriptionTWProperties ] [ viewCardDescription type_ itemId model ]
                     , viewChildren type_ itemId model
                     , viewAddChildLink type_ itemId model
@@ -116,13 +112,10 @@ viewChildren type_ id model =
         case EntityUtilities.getChildType type_ of
             Just childItemType ->
                 let
-                    childCollection =
-                        ItemPageUtilities.getDataFromItem childItemType model
-
                     children =
-                        List.sortBy .identifier <| List.filterMap identity <| List.map (\i -> Dict.get i childCollection) <| Set.toList <| EntityUtilities.getChildren type_ id model
+                        EntityUtilities.getChildren type_ id model |> Set.toList |> Utilities.sortByDescending (\i -> EntityUtilities.sortEntityBy childItemType i model)
                 in
-                List.map (\child -> viewLink childItemType child.id model) children
+                List.map (\child -> viewLink childItemType child model) children
 
             Nothing ->
                 []

@@ -1,16 +1,15 @@
 module Utilities.EntityPageUtilities exposing (..)
 
-import Array
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), CriteriumValue, ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
+import Data exposing (ClimbingRouteKind(..), CriteriumValue, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
 import Message exposing (ItemType(..), Route(..))
-import Model exposing (Criteria, FormState(..), ItemPageItemForm, ItemPageModel, Model)
+import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
 import Url.Builder
 import Utilities
 import Utilities.EntityFormUtilities as ItemFormUtilities
-import Utilities.EntityUtilities as EntityUtilities
+import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector)
 
 
 getItemFromRoute : Route -> Maybe ItemType
@@ -48,33 +47,17 @@ getModelFromItem item model =
             model.areasModel
 
 
-getDataFromItem : ItemType -> Model -> Dict Int ItemPageItem
-getDataFromItem item model =
-    case item of
-        ClimbingRouteItem ->
-            Dict.map (toClimbingRouteItem model) model.climbingRoutes
-
-        AscentItem ->
-            Dict.map (toAscentItem model) model.ascents
-
-        SectorItem ->
-            Dict.map (toSectorItem model) model.sectors
-
-        AreaItem ->
-            Dict.map toAreaItem model.areas
-
-
 entityPageTableHeaders : ItemType -> List String
 entityPageTableHeaders item =
     case item of
         ClimbingRouteItem ->
-            [ "name", "grade", "kind" ]
+            [ "name", "grade", "kind", "sector" ]
 
         AscentItem ->
-            [ "date", "kind" ]
+            [ "date", "kind", "route" ]
 
         SectorItem ->
-            [ "name" ]
+            [ "name", "area" ]
 
         AreaItem ->
             [ "name", "country" ]
@@ -87,107 +70,90 @@ selectedItemId type_ model =
 
 activeFilters : ItemType -> Model -> Dict String String
 activeFilters type_ model =
-    getModelFromItem type_ model |> .filters
+    getModelFromItem type_ model |> .filterValues
 
 
-getParentName : Model -> ItemType -> Int -> String
-getParentName model itemType parentId =
-    EntityUtilities.getParentType itemType
-        |> Maybe.andThen
-            (\parentType ->
-                Dict.get parentId <|
-                    getDataFromItem parentType model
-            )
-        |> Maybe.map .identifier
-        |> Maybe.withDefault ""
+tableValues : ItemType -> Int -> Model -> List ( String, String )
+tableValues type_ id model =
+    Maybe.withDefault [] <|
+        case type_ of
+            AreaItem ->
+                getArea id model
+                    |> Maybe.map
+                        (\area ->
+                            [ ( "name", area.name ), ( "country", area.country ) ]
+                        )
+
+            SectorItem ->
+                getSector id model
+                    |> Maybe.map
+                        (\sector ->
+                            [ ( "name", sector.name )
+                            , ( "area"
+                              , sector.areaId
+                                    |> Maybe.andThen
+                                        (\x ->
+                                            EntityUtilities.getArea x model
+                                        )
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
+
+            ClimbingRouteItem ->
+                getClimbingRoute id model
+                    |> Maybe.map
+                        (\climbingRoute ->
+                            [ ( "name", climbingRoute.name )
+                            , ( "grade", climbingRoute.grade )
+                            , ( "kind", climbingRouteKindToString climbingRoute.kind )
+                            , ( "sector"
+                              , climbingRoute.sectorId
+                                    |> Maybe.andThen
+                                        (\x ->
+                                            EntityUtilities.getSector x model
+                                        )
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
+
+            AscentItem ->
+                getAscent id model
+                    |> Maybe.map
+                        (\ascent ->
+                            [ ( "date", Maybe.withDefault "" ascent.date )
+                            , ( "kind", ascentKindToString ascent.kind )
+                            , ( "route"
+                              , ascent.routeId
+                                    |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
 
 
-toClimbingRouteItem : Model -> Int -> ClimbingRoute -> ItemPageItem
-toClimbingRouteItem model _ climbingRoute =
-    { cardHeader =
-        List.foldr (++) "" <|
-            [ climbingRoute.name, " [", climbingRoute.grade, "]" ]
-    , identifier = climbingRoute.name
-    , cardDescription = climbingRoute.comment
-    , tableValues =
-        [ ( "name", climbingRoute.name )
-        , ( "grade", climbingRoute.grade )
-        , ( "kind", climbingRouteKindToString climbingRoute.kind )
-        , ( "sector", climbingRoute.sectorId |> Maybe.map (getParentName model ClimbingRouteItem) |> Maybe.withDefault "" )
-        ]
-    , id = climbingRoute.id
-    , parentId = climbingRoute.sectorId
-    , childIds = climbingRoute.ascentIds
-    }
-
-
-toSectorItem : Model -> Int -> Sector -> ItemPageItem
-toSectorItem model _ sector =
-    { cardHeader = sector.name
-    , identifier = sector.name
-    , id = sector.id
-    , tableValues =
-        [ ( "name", sector.name )
-        , ( "area", sector.areaId |> Maybe.map (getParentName model SectorItem) |> Maybe.withDefault "" )
-        ]
-    , cardDescription = Nothing
-    , parentId = sector.areaId
-    , childIds = sector.routeIds
-    }
-
-
-toAreaItem : Int -> Area -> ItemPageItem
-toAreaItem _ area =
-    { cardHeader = area.name
-    , identifier = area.name
-    , id = area.id
-    , tableValues = [ ( "name", area.name ), ( "country", area.country ) ]
-    , cardDescription = Just area.country
-    , parentId = Nothing
-    , childIds = area.sectorIds
-    }
-
-
-toAscentItem : Model -> Int -> Ascent -> ItemPageItem
-toAscentItem model _ ascent =
-    let
-        parentRouteName =
-            ascent.routeId
-                |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
-                |> Maybe.map .name
-                |> Maybe.withDefault ""
-
-        dateAndKind =
-            Maybe.withDefault (String.fromInt ascent.id) ascent.date ++ " [" ++ ascentKindToString ascent.kind ++ "]"
-    in
-    { cardHeader = parentRouteName ++ " ~ " ++ dateAndKind
-    , identifier = dateAndKind
-    , cardDescription = ascent.comment
-    , tableValues =
-        [ ( "date", Maybe.withDefault "" ascent.date )
-        , ( "kind", ascentKindToString ascent.kind )
-        , ( "route", parentRouteName )
-        ]
-    , id = ascent.id
-    , parentId = ascent.routeId
-    , childIds = Nothing
-    }
-
-
-sortedItems : ItemType -> Model -> List ItemPageItem
+sortedItems : ItemType -> Model -> List Int
 sortedItems type_ model =
-    getDataFromItem type_ model
-        |> Dict.toList
-        |> List.map Tuple.second
-        |> List.sortBy
-            (\a ->
-                a.tableValues
-                    |> Array.fromList
-                    |> Array.get (Maybe.withDefault 0 (getModelFromItem type_ model |> .sortOnColumn))
-                    |> Maybe.map Tuple.second
-                    |> Maybe.withDefault ""
-                    |> String.toLower
-            )
+    let
+        extract d f =
+            d |> Dict.toList |> List.map Tuple.second |> List.sortBy f |> List.map .id
+    in
+    case type_ of
+        AreaItem ->
+            extract model.areas .name
+
+        SectorItem ->
+            extract model.sectors .name
+
+        ClimbingRouteItem ->
+            extract model.climbingRoutes .grade
+
+        AscentItem ->
+            extract model.ascents (.date >> Maybe.withDefault "")
 
 
 urlToItem : ItemType -> Int -> String
@@ -230,7 +196,7 @@ urlToCreateItem item criteria =
     Url.Builder.absolute [ prefix ] [ Url.Builder.string "criteria" (encode 0 <| Data.encodeCriteriumValueList criteria) ]
 
 
-paramsFromRoute : ItemPageItemForm -> Route -> ( Maybe Int, Criteria, FormState )
+paramsFromRoute : EntityForm -> Route -> ( Maybe Int, Criteria, FormState )
 paramsFromRoute form route =
     let
         maybeItem =

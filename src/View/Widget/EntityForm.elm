@@ -1,5 +1,6 @@
 module View.Widget.EntityForm exposing (..)
 
+import Data
 import Date
 import DatePicker
 import Dict
@@ -7,15 +8,15 @@ import Html
 import Html.Styled as H exposing (Html)
 import Html.Styled.Attributes as A
 import Html.Styled.Events as E
-import Message exposing (Msg)
-import Model exposing (ItemPageItemForm, Model)
+import Message exposing (ItemType(..), Msg)
+import Model exposing (EntityForm, Model)
 import Tailwind.Utilities as Tw
 import Utilities
 import Utilities.EntityPageUtilities as ItemPageUtilities
 import Utilities.EntityUtilities as EntityUtilities
 
 
-view : ItemPageItemForm -> Model -> Html Msg
+view : EntityForm -> Model -> Html Msg
 view form model =
     let
         viewCriterium criteria key =
@@ -70,19 +71,40 @@ view form model =
                             ]
                         <|
                             H.option [ A.value "" ] [ H.text "" ]
-                                :: (ItemPageUtilities.sortedItems (ItemPageUtilities.getModelFromItem parentItem model).itemType model
+                                :: (ItemPageUtilities.sortedItems parentItem model
                                         |> List.map
-                                            (\item ->
-                                                H.option
-                                                    [ A.value <| String.fromInt item.id
-                                                    , A.selected <| String.fromInt item.id == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get "_parentId" form.criteria)
-                                                    ]
-                                                    [ H.text item.identifier ]
-                                            )
+                                            (\id -> viewItemSelector form id model)
                                    )
                     )
     in
     H.div []
         [ H.div [ A.css [ Tw.flex, Tw.flex_col ] ] <| List.map (viewCriterium form.criteria) form.order
         , H.div [] [ Maybe.withDefault (H.text "") maybeParentCriterium ]
+        ]
+
+
+viewItemSelector : EntityForm -> Int -> Model -> Html Msg
+viewItemSelector form id model =
+    H.option
+        [ A.value <| String.fromInt id
+        , A.selected <| String.fromInt id == (Maybe.withDefault "" <| Maybe.map .value <| Dict.get "_parentId" form.criteria)
+        ]
+        [ H.text <|
+            Maybe.withDefault "" <|
+                case form.entity.itemType of
+                    AreaItem ->
+                        EntityUtilities.getArea id model |> Maybe.map .name
+
+                    SectorItem ->
+                        EntityUtilities.getSector id model |> Maybe.map .name
+
+                    ClimbingRouteItem ->
+                        EntityUtilities.getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ])
+
+                    AscentItem ->
+                        let
+                            dateOrEmpty ascent =
+                                Maybe.withDefault "" ascent.date
+                        in
+                        EntityUtilities.getAscent id model |> Maybe.map (\a -> Utilities.stringFromList [ dateOrEmpty a, " [", Data.ascentKindToString a.kind, "]" ])
         ]

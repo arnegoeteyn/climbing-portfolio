@@ -3,17 +3,17 @@ module Utilities.EntityFormUtilities exposing (..)
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Message exposing (ItemType(..))
-import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
+import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
 import Set
 import Utilities
 
 
-closeForm : ItemPageItemForm -> ItemPageItemForm
+closeForm : EntityForm -> EntityForm
 closeForm form =
     { form | formState = Hidden }
 
 
-getFormFromItem : ItemType -> Model -> ItemPageItemForm
+getFormFromItem : ItemType -> Model -> EntityForm
 getFormFromItem item model =
     case item of
         AreaItem ->
@@ -107,12 +107,12 @@ toAscentFormCriteria maybeAscent =
         ]
 
 
-getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
+getCriteriumValueFromForm : String -> EntityForm -> Maybe String
 getCriteriumValueFromForm key form =
     Dict.get key form.criteria |> Maybe.map .value
 
 
-getNewIdFromFrom : ItemPageItemForm -> Dict Int a -> Int
+getNewIdFromFrom : EntityForm -> Dict Int a -> Int
 getNewIdFromFrom form collection =
     case form.formState of
         Model.Update id ->
@@ -122,7 +122,7 @@ getNewIdFromFrom form collection =
             Utilities.newId collection
 
 
-getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
+getParentFromForm : EntityForm -> Dict Int a -> Maybe a
 getParentFromForm form parentCollection =
     form.parentId
         |> Maybe.andThen String.toInt
@@ -156,7 +156,7 @@ modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCo
     modifiedCollection
 
 
-climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
+climbingRouteFromForm : Model -> EntityForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
 climbingRouteFromForm model form =
     let
         newRouteId =
@@ -199,7 +199,7 @@ climbingRouteFromForm model form =
     )
 
 
-sectorFromForm : Model -> ItemPageItemForm -> ( Data.Sector, Dict.Dict Int Data.Area )
+sectorFromForm : Model -> EntityForm -> ( Data.Sector, Dict.Dict Int Data.Area )
 sectorFromForm model form =
     let
         newSectorId =
@@ -230,7 +230,7 @@ sectorFromForm model form =
     )
 
 
-ascentFromForm : Model -> ItemPageItemForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
+ascentFromForm : Model -> EntityForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
 ascentFromForm model form =
     let
         newAscentId =
@@ -265,7 +265,7 @@ ascentFromForm model form =
     )
 
 
-areaFromForm : Model -> ItemPageItemForm -> Data.Area
+areaFromForm : Model -> EntityForm -> Data.Area
 areaFromForm model form =
     let
         newAreaId =

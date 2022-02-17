@@ -11,6 +11,7 @@ import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
 import Utilities.EntityFormUtilities exposing (getFormFromItem)
 import Utilities.EntityPageUtilities as EntityPageUtilities
+import Utilities.EntityUtilities as EntityUtilities
 import View.Components.Table as Table
 import View.Widget.EntityCard as GenericItemCard
 import View.Widget.EntityForm as ItemForm
@@ -73,20 +74,17 @@ viewItemList type_ model =
 
         filteredItems =
             List.filter
-                (\item ->
-                    let
-                        tableValuesDict =
-                            Dict.fromList <| item.tableValues
-                    in
+                (\id ->
                     Dict.foldl
-                        (\key value acc ->
-                            acc && String.contains (String.toLower value) (String.toLower <| Maybe.withDefault "" <| Dict.get key tableValuesDict)
-                        )
+                        (\key value acc -> acc && EntityUtilities.matchesFilter type_ id key value model)
                         True
                         (EntityPageUtilities.activeFilters type_ model)
                 )
             <|
                 EntityPageUtilities.sortedItems type_ model
+
+        a =
+            filteredItems |> Debug.log "test "
     in
     div []
         [ h2 [] [ text <| String.fromInt (List.length filteredItems) ++ " items" ]
@@ -107,15 +105,15 @@ viewItemList type_ model =
                     headers
             , Html.Styled.tbody [ Table.tableBodyProperties ] <|
                 List.map
-                    (\item ->
+                    (\id ->
                         tr
-                            ((onClick <| ItemPage type_ (SelectItem item.id))
-                                :: Utilities.filterList [ ( Table.selectedRowProperties, EntityPageUtilities.selectedItemId type_ model == Just item.id, Nothing ) ]
+                            ((onClick <| ItemPage type_ (SelectItem id))
+                                :: Utilities.filterList [ ( Table.selectedRowProperties, EntityPageUtilities.selectedItemId type_ model == Just id, Nothing ) ]
                             )
                         <|
                             List.map
                                 (\( _, value ) -> td [] [ text value ])
-                                item.tableValues
+                                (EntityPageUtilities.tableValues type_ id model)
                     )
                 <|
                     filteredItems

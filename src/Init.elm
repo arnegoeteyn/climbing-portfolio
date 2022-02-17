@@ -6,7 +6,7 @@ import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
 import Message exposing (ItemType(..), Msg(..), Route(..))
-import Model exposing (Entity, FormState(..), ItemPageItemForm, ItemPageModel, Model)
+import Model exposing (EntityForm, FormState(..), ItemPageModel, Model)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
@@ -90,14 +90,14 @@ itemPageModel t route =
     ( { form = { form | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }
       , itemType = t
       , selectedItemId = selectedItem
-      , filters = Dict.empty
+      , filterValues = Dict.empty
       , sortOnColumn = Just 0
       }
     , Cmd.none
     )
 
 
-climbingRouteForm : ItemPageItemForm
+climbingRouteForm : EntityForm
 climbingRouteForm =
     { criteria = EntityFormUtilities.toClimbingRouteFormCriteria Nothing
     , order = [ "name", "grade", "kind", "comment" ]
@@ -107,7 +107,7 @@ climbingRouteForm =
     }
 
 
-ascentForm : ItemPageItemForm
+ascentForm : EntityForm
 ascentForm =
     { criteria = EntityFormUtilities.toAscentFormCriteria Nothing
     , order = [ "date", "comment", "kind" ]
@@ -117,7 +117,7 @@ ascentForm =
     }
 
 
-sectorForm : ItemPageItemForm
+sectorForm : EntityForm
 sectorForm =
     { criteria = EntityFormUtilities.toSectorFormCriteria Nothing
     , order = [ "name" ]
@@ -127,7 +127,7 @@ sectorForm =
     }
 
 
-areaForm : ItemPageItemForm
+areaForm : EntityForm
 areaForm =
     { criteria = EntityFormUtilities.toAreaFormCriteria Nothing
     , order = [ "name", "country" ]

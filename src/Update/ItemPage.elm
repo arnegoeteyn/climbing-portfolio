@@ -32,7 +32,7 @@ update msg item model =
                     ( { itemPageModel | selectedItemId = Just id, form = EntityFormUtilities.closeForm itemPageModel.form }, Cmd.none )
 
                 FilterUpdateMessage key value ->
-                    ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )
+                    ( { itemPageModel | filterValues = Dict.insert key value itemPageModel.filterValues }, Cmd.none )
 
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
