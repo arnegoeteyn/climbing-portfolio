@@ -184,6 +184,9 @@ matchesFilter type_ id key value model =
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
+                                "kind" ->
+                                    Data.climbingRouteKindToString climbingRoute.kind
+
                                 _ ->
                                     value
                         )

@@ -4,10 +4,11 @@ import Data exposing (ClimbingRouteKind(..), CriteriumValue, ascentKindToString,
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
+import List exposing (sortBy)
 import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
 import Url.Builder
-import Utilities
+import Utilities exposing (sortByDescending)
 import Utilities.EntityFormUtilities as ItemFormUtilities
 import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector)
 
@@ -139,21 +140,21 @@ tableValues type_ id model =
 sortedItems : ItemType -> Model -> List Int
 sortedItems type_ model =
     let
-        extract d f =
-            d |> Dict.toList |> List.map Tuple.second |> List.sortBy f |> List.map .id
+        extract d s f =
+            d |> Dict.toList |> List.map Tuple.second |> s f |> List.map .id
     in
     case type_ of
         AreaItem ->
-            extract model.areas .name
+            extract model.areas List.sortBy .name
 
         SectorItem ->
-            extract model.sectors .name
+            extract model.sectors List.sortBy .name
 
         ClimbingRouteItem ->
-            extract model.climbingRoutes .grade
+            extract model.climbingRoutes sortByDescending .grade
 
         AscentItem ->
-            extract model.ascents (.date >> Maybe.withDefault "")
+            extract model.ascents sortByDescending (.date >> Maybe.withDefault "")
 
 
 urlToItem : ItemType -> Int -> String
