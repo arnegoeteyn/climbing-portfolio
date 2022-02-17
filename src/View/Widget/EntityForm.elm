@@ -64,14 +64,15 @@ view form model =
 
         maybeParentCriterium =
             EntityUtilities.getParentType form.entity.itemType
+                |> Debug.log "parent"
                 |> Maybe.map
-                    (\parentItem ->
+                    (\parentType ->
                         H.select
                             [ E.onInput (\value -> Message.ItemPage form.entity.itemType (Message.FormUpdateMessage <| Message.UpdateParent value))
                             ]
                         <|
                             H.option [ A.value "" ] [ H.text "" ]
-                                :: (ItemPageUtilities.sortedItems parentItem model
+                                :: (ItemPageUtilities.sortedItems parentType model
                                         |> List.map
                                             (\id -> viewItemSelector form id model)
                                    )
@@ -93,18 +94,14 @@ viewItemSelector form id model =
             Maybe.withDefault "" <|
                 case form.entity.itemType of
                     AreaItem ->
-                        EntityUtilities.getArea id model |> Maybe.map .name
+                        Nothing
 
                     SectorItem ->
-                        EntityUtilities.getSector id model |> Maybe.map .name
+                        EntityUtilities.getArea id model |> Maybe.map .name
 
                     ClimbingRouteItem ->
-                        EntityUtilities.getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ])
+                        EntityUtilities.getSector id model |> Maybe.map .name
 
                     AscentItem ->
-                        let
-                            dateOrEmpty ascent =
-                                Maybe.withDefault "" ascent.date
-                        in
-                        EntityUtilities.getAscent id model |> Maybe.map (\a -> Utilities.stringFromList [ dateOrEmpty a, " [", Data.ascentKindToString a.kind, "]" ])
+                        EntityUtilities.getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ])
         ]
