@@ -64,7 +64,6 @@ view form model =
 
         maybeParentCriterium =
             EntityUtilities.getParentType form.entity.itemType
-                |> Debug.log "parent"
                 |> Maybe.map
                     (\parentType ->
                         H.select

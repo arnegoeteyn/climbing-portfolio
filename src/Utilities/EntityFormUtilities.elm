@@ -6,6 +6,7 @@ import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
 import Set
 import Utilities
+import Utilities.EntityUtilities exposing (getParent, getParentType)
 
 
 closeForm : EntityForm -> EntityForm
@@ -130,13 +131,15 @@ getParentFromForm form parentCollection =
 
 
 modifiedParentCollection :
-    Int
+    ItemType
+    -> Int
     -> Maybe { a | id : Int }
     -> ({ a | id : Int } -> Maybe (Set.Set Int))
     -> (Maybe (Set.Set Int) -> { a | id : Int } -> { a | id : Int })
+    -> Model
     -> Dict Int { a | id : Int }
     -> Dict Int { a | id : Int }
-modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCollection =
+modifiedParentCollection childType newId maybeParent childAccessor updateChildIds model parentCollection =
     let
         newChildIds =
             Set.insert
@@ -147,13 +150,29 @@ modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCo
                     |> Maybe.withDefault Set.empty
                 )
 
+        maybeOldParent =
+            getParent childType newId model
+                |> Maybe.andThen (\i -> Dict.get i parentCollection)
+
         modifiedCollection =
             maybeParent
                 |> Maybe.map (updateChildIds <| Just newChildIds)
                 |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
                 |> Maybe.withDefault parentCollection
+
+        modifiedOldParent =
+            case maybeOldParent of
+                Nothing ->
+                    modifiedCollection
+
+                Just oldParent ->
+                    childAccessor oldParent
+                        |> Maybe.map (\children -> Set.remove newId children)
+                        |> Maybe.map (\newChildren -> updateChildIds (Just newChildren) oldParent)
+                        |> Maybe.map (\parent -> Dict.insert oldParent.id parent modifiedCollection)
+                        |> Maybe.withDefault modifiedCollection
     in
-    modifiedCollection
+    modifiedOldParent
 
 
 climbingRouteFromForm : Model -> EntityForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
@@ -169,10 +188,12 @@ climbingRouteFromForm model form =
             getCriteriumValueFromForm "kind" form
 
         modifiedSectors =
-            modifiedParentCollection newRouteId
+            modifiedParentCollection ClimbingRouteItem
+                newRouteId
                 maybeSector
                 .routeIds
                 (\newIds sector -> { sector | routeIds = newIds })
+                model
                 model.sectors
 
         maybeName =
@@ -209,10 +230,12 @@ sectorFromForm model form =
             getParentFromForm form model.areas
 
         modifiedAreas =
-            modifiedParentCollection newSectorId
+            modifiedParentCollection SectorItem
+                newSectorId
                 maybeArea
                 .sectorIds
                 (\newIds area -> { area | sectorIds = newIds })
+                model
                 model.areas
 
         maybeName =
@@ -240,10 +263,12 @@ ascentFromForm model form =
             getParentFromForm form model.climbingRoutes
 
         modifiedRoutes =
-            modifiedParentCollection newAscentId
+            modifiedParentCollection AscentItem
+                newAscentId
                 maybeRoute
                 .ascentIds
                 (\newIds route -> { route | ascentIds = newIds })
+                model
                 model.climbingRoutes
 
         maybeComment =
