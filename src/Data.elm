@@ -10,17 +10,6 @@ import Svg.Styled.Attributes exposing (ascent)
 import Utilities exposing (encodeNullable)
 
 
-type alias ItemPageItem =
-    { cardHeader : String
-    , identifier : String
-    , cardDescription : Maybe String
-    , tableValues : List ( String, String )
-    , id : Int
-    , parentId : Maybe Int
-    , childIds : Maybe (Set Int)
-    }
-
-
 type alias JsonFile =
     { climbingRoutes : Dict Int ClimbingRoute
     , ascents : Dict Int Ascent

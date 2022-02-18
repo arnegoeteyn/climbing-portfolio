@@ -1,20 +1,20 @@
-module Utilities.ItemFormUtilities exposing (..)
+module Utilities.EntityFormUtilities exposing (..)
 
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
-import Json.Decode
 import Message exposing (ItemType(..))
-import Model exposing (Criteria, Criterium, FormState(..), ItemPageItemForm, Model)
+import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
 import Set
 import Utilities
+import Utilities.EntityUtilities exposing (getParent, getParentType)
 
 
-closeForm : ItemPageItemForm -> ItemPageItemForm
+closeForm : EntityForm -> EntityForm
 closeForm form =
     { form | formState = Hidden }
 
 
-getFormFromItem : ItemType -> Model -> ItemPageItemForm
+getFormFromItem : ItemType -> Model -> EntityForm
 getFormFromItem item model =
     case item of
         AreaItem ->
@@ -108,12 +108,12 @@ toAscentFormCriteria maybeAscent =
         ]
 
 
-getCriteriumValueFromForm : String -> ItemPageItemForm -> Maybe String
+getCriteriumValueFromForm : String -> EntityForm -> Maybe String
 getCriteriumValueFromForm key form =
     Dict.get key form.criteria |> Maybe.map .value
 
 
-getNewIdFromFrom : ItemPageItemForm -> Dict Int a -> Int
+getNewIdFromFrom : EntityForm -> Dict Int a -> Int
 getNewIdFromFrom form collection =
     case form.formState of
         Model.Update id ->
@@ -123,7 +123,7 @@ getNewIdFromFrom form collection =
             Utilities.newId collection
 
 
-getParentFromForm : ItemPageItemForm -> Dict Int a -> Maybe a
+getParentFromForm : EntityForm -> Dict Int a -> Maybe a
 getParentFromForm form parentCollection =
     form.parentId
         |> Maybe.andThen String.toInt
@@ -131,13 +131,15 @@ getParentFromForm form parentCollection =
 
 
 modifiedParentCollection :
-    Int
+    ItemType
+    -> Int
     -> Maybe { a | id : Int }
     -> ({ a | id : Int } -> Maybe (Set.Set Int))
     -> (Maybe (Set.Set Int) -> { a | id : Int } -> { a | id : Int })
+    -> Model
     -> Dict Int { a | id : Int }
     -> Dict Int { a | id : Int }
-modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCollection =
+modifiedParentCollection childType newId maybeParent childAccessor updateChildIds model parentCollection =
     let
         newChildIds =
             Set.insert
@@ -148,16 +150,32 @@ modifiedParentCollection newId maybeParent childAccessor updateChildIds parentCo
                     |> Maybe.withDefault Set.empty
                 )
 
+        maybeOldParent =
+            getParent childType newId model
+                |> Maybe.andThen (\i -> Dict.get i parentCollection)
+
         modifiedCollection =
             maybeParent
                 |> Maybe.map (updateChildIds <| Just newChildIds)
                 |> Maybe.map (\parent -> Dict.insert parent.id parent parentCollection)
                 |> Maybe.withDefault parentCollection
+
+        modifiedOldParent =
+            case maybeOldParent of
+                Nothing ->
+                    modifiedCollection
+
+                Just oldParent ->
+                    childAccessor oldParent
+                        |> Maybe.map (\children -> Set.remove newId children)
+                        |> Maybe.map (\newChildren -> updateChildIds (Just newChildren) oldParent)
+                        |> Maybe.map (\parent -> Dict.insert oldParent.id parent modifiedCollection)
+                        |> Maybe.withDefault modifiedCollection
     in
-    modifiedCollection
+    modifiedOldParent
 
 
-climbingRouteFromForm : Model -> ItemPageItemForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
+climbingRouteFromForm : Model -> EntityForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
 climbingRouteFromForm model form =
     let
         newRouteId =
@@ -170,10 +188,12 @@ climbingRouteFromForm model form =
             getCriteriumValueFromForm "kind" form
 
         modifiedSectors =
-            modifiedParentCollection newRouteId
+            modifiedParentCollection ClimbingRouteItem
+                newRouteId
                 maybeSector
                 .routeIds
                 (\newIds sector -> { sector | routeIds = newIds })
+                model
                 model.sectors
 
         maybeName =
@@ -200,7 +220,7 @@ climbingRouteFromForm model form =
     )
 
 
-sectorFromForm : Model -> ItemPageItemForm -> ( Data.Sector, Dict.Dict Int Data.Area )
+sectorFromForm : Model -> EntityForm -> ( Data.Sector, Dict.Dict Int Data.Area )
 sectorFromForm model form =
     let
         newSectorId =
@@ -210,10 +230,12 @@ sectorFromForm model form =
             getParentFromForm form model.areas
 
         modifiedAreas =
-            modifiedParentCollection newSectorId
+            modifiedParentCollection SectorItem
+                newSectorId
                 maybeArea
                 .sectorIds
                 (\newIds area -> { area | sectorIds = newIds })
+                model
                 model.areas
 
         maybeName =
@@ -231,7 +253,7 @@ sectorFromForm model form =
     )
 
 
-ascentFromForm : Model -> ItemPageItemForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
+ascentFromForm : Model -> EntityForm -> ( Data.Ascent, Dict.Dict Int Data.ClimbingRoute )
 ascentFromForm model form =
     let
         newAscentId =
@@ -241,10 +263,12 @@ ascentFromForm model form =
             getParentFromForm form model.climbingRoutes
 
         modifiedRoutes =
-            modifiedParentCollection newAscentId
+            modifiedParentCollection AscentItem
+                newAscentId
                 maybeRoute
                 .ascentIds
                 (\newIds route -> { route | ascentIds = newIds })
+                model
                 model.climbingRoutes
 
         maybeComment =
@@ -266,7 +290,7 @@ ascentFromForm model form =
     )
 
 
-areaFromForm : Model -> ItemPageItemForm -> Data.Area
+areaFromForm : Model -> EntityForm -> Data.Area
 areaFromForm model form =
     let
         newAreaId =

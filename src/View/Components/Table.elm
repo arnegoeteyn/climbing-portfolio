@@ -18,3 +18,8 @@ tableHeaderProperties =
 tableBodyProperties : Attribute msg
 tableBodyProperties =
     css [ Tw.text_sm, Tw.divide_y, Tw.divide_gray_100 ]
+
+
+selectedRowProperties : Attribute msg
+selectedRowProperties =
+    css [ Tw.bg_purple_300 ]

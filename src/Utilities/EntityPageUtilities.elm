@@ -1,15 +1,17 @@
-module Utilities.ItemPageUtilities exposing (..)
+module Utilities.EntityPageUtilities exposing (..)
 
-import Array
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), CriteriumValue, ItemPageItem, Sector, ascentKindToString, climbingRouteKindToString)
+import Data exposing (ClimbingRouteKind(..), CriteriumValue, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ItemRelation, ItemType(..), Route(..))
-import Model exposing (Criteria, FormState(..), ItemPageItemForm, ItemPageModel, Model)
+import List exposing (sortBy)
+import Message exposing (ItemType(..), Route(..))
+import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
+import Set
 import Url.Builder
-import Utilities
-import Utilities.ItemFormUtilities as ItemFormUtilities
+import Utilities exposing (sortByDescending)
+import Utilities.EntityFormUtilities as ItemFormUtilities
+import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector)
 
 
 getItemFromRoute : Route -> Maybe ItemType
@@ -47,136 +49,114 @@ getModelFromItem item model =
             model.areasModel
 
 
-getDataFromItem : ItemType -> Model -> Dict Int ItemPageItem
-getDataFromItem item model =
-    case item of
+entityPageTableHeaders : ItemType -> List String
+entityPageTableHeaders type_ =
+    case type_ of
         ClimbingRouteItem ->
-            Dict.map (toClimbingRouteItem model) model.climbingRoutes
+            [ "#", "name", "grade", "kind", "sector" ]
 
         AscentItem ->
-            Dict.map (toAscentItem model) model.ascents
+            [ "date", "kind", "route" ]
 
         SectorItem ->
-            Dict.map (toSectorItem model) model.sectors
-
-        AreaItem ->
-            Dict.map toAreaItem model.areas
-
-
-itemPageTableHeaders : ItemType -> List String
-itemPageTableHeaders item =
-    case item of
-        ClimbingRouteItem ->
-            [ "name", "grade", "kind" ]
-
-        AscentItem ->
-            [ "date", "kind" ]
-
-        SectorItem ->
-            [ "name" ]
+            [ "name", "area" ]
 
         AreaItem ->
             [ "name", "country" ]
 
 
-getParentName : Model -> ItemType -> Int -> String
-getParentName model itemType parentId =
-    (getRelationFromItem itemType |> .parent)
-        |> Maybe.andThen
-            (\parentType ->
-                Dict.get parentId <|
-                    getDataFromItem parentType model
-            )
-        |> Maybe.map .identifier
-        |> Maybe.withDefault ""
+selectedItemId : ItemType -> Model -> Maybe Int
+selectedItemId type_ model =
+    getModelFromItem type_ model |> .selectedItemId
 
 
-toClimbingRouteItem : Model -> Int -> ClimbingRoute -> ItemPageItem
-toClimbingRouteItem model id climbingRoute =
-    { cardHeader =
-        List.foldr (++) "" <|
-            [ climbingRoute.name, " [", climbingRoute.grade, "]" ]
-    , identifier = climbingRoute.name
-    , cardDescription = climbingRoute.comment
-    , tableValues =
-        [ ( "name", climbingRoute.name )
-        , ( "grade", climbingRoute.grade )
-        , ( "kind", climbingRouteKindToString climbingRoute.kind )
-        , ( "sector", climbingRoute.sectorId |> Maybe.map (getParentName model ClimbingRouteItem) |> Maybe.withDefault "" )
-        ]
-    , id = climbingRoute.id
-    , parentId = climbingRoute.sectorId
-    , childIds = climbingRoute.ascentIds
-    }
+activeFilters : ItemType -> Model -> Dict String String
+activeFilters type_ model =
+    getModelFromItem type_ model |> .filterValues
 
 
-toSectorItem : Model -> Int -> Sector -> ItemPageItem
-toSectorItem model _ sector =
-    { cardHeader = sector.name
-    , identifier = sector.name
-    , id = sector.id
-    , tableValues =
-        [ ( "name", sector.name )
-        , ( "area", sector.areaId |> Maybe.map (getParentName model SectorItem) |> Maybe.withDefault "" )
-        ]
-    , cardDescription = Nothing
-    , parentId = sector.areaId
-    , childIds = sector.routeIds
-    }
+tableValues : ItemType -> Int -> Model -> List ( String, String )
+tableValues type_ id model =
+    Maybe.withDefault [] <|
+        case type_ of
+            AreaItem ->
+                getArea id model
+                    |> Maybe.map
+                        (\area ->
+                            [ ( "name", area.name ), ( "country", area.country ) ]
+                        )
+
+            SectorItem ->
+                getSector id model
+                    |> Maybe.map
+                        (\sector ->
+                            [ ( "name", sector.name )
+                            , ( "area"
+                              , sector.areaId
+                                    |> Maybe.andThen
+                                        (\x ->
+                                            EntityUtilities.getArea x model
+                                        )
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
+
+            ClimbingRouteItem ->
+                getClimbingRoute id model
+                    |> Maybe.map
+                        (\climbingRoute ->
+                            [ ( "#", String.fromInt <| Set.size <| Maybe.withDefault Set.empty climbingRoute.ascentIds )
+                            , ( "name", climbingRoute.name )
+                            , ( "grade", climbingRoute.grade )
+                            , ( "kind", climbingRouteKindToString climbingRoute.kind )
+                            , ( "sector"
+                              , climbingRoute.sectorId
+                                    |> Maybe.andThen
+                                        (\x ->
+                                            EntityUtilities.getSector x model
+                                        )
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
+
+            AscentItem ->
+                getAscent id model
+                    |> Maybe.map
+                        (\ascent ->
+                            [ ( "date", Maybe.withDefault "" ascent.date )
+                            , ( "kind", ascentKindToString ascent.kind )
+                            , ( "route"
+                              , ascent.routeId
+                                    |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
+                                    |> Maybe.map .name
+                                    |> Maybe.withDefault ""
+                              )
+                            ]
+                        )
 
 
-toAreaItem : Int -> Area -> ItemPageItem
-toAreaItem _ area =
-    { cardHeader = area.name
-    , identifier = area.name
-    , id = area.id
-    , tableValues = [ ( "name", area.name ), ( "country", area.country ) ]
-    , cardDescription = Just area.country
-    , parentId = Nothing
-    , childIds = area.sectorIds
-    }
-
-
-toAscentItem : Model -> Int -> Ascent -> ItemPageItem
-toAscentItem model _ ascent =
+sortedItems : ItemType -> Model -> List Int
+sortedItems type_ model =
     let
-        parentRouteName =
-            ascent.routeId
-                |> Maybe.andThen (\x -> Dict.get x model.climbingRoutes)
-                |> Maybe.map .name
-                |> Maybe.withDefault ""
-
-        dateAndKind =
-            Maybe.withDefault (String.fromInt ascent.id) ascent.date ++ " [" ++ ascentKindToString ascent.kind ++ "]"
+        extract d s f =
+            d |> Dict.toList |> List.map Tuple.second |> s f |> List.map .id
     in
-    { cardHeader = parentRouteName ++ " ~ " ++ dateAndKind
-    , identifier = dateAndKind
-    , cardDescription = ascent.comment
-    , tableValues =
-        [ ( "date", Maybe.withDefault "" ascent.date )
-        , ( "kind", ascentKindToString ascent.kind )
-        , ( "route", parentRouteName )
-        ]
-    , id = ascent.id
-    , parentId = ascent.routeId
-    , childIds = Nothing
-    }
+    case type_ of
+        AreaItem ->
+            extract model.areas List.sortBy .name
 
+        SectorItem ->
+            extract model.sectors List.sortBy .name
 
-sortedItems : ItemPageModel -> Model -> List ItemPageItem
-sortedItems pageModel model =
-    getDataFromItem pageModel.itemType model
-        |> Dict.toList
-        |> List.map Tuple.second
-        |> List.sortBy
-            (\a ->
-                a.tableValues
-                    |> Array.fromList
-                    |> Array.get (Maybe.withDefault 0 pageModel.sortOnColumn)
-                    |> Maybe.map Tuple.second
-                    |> Maybe.withDefault ""
-                    |> String.toLower
-            )
+        ClimbingRouteItem ->
+            extract model.climbingRoutes sortByDescending .grade
+
+        AscentItem ->
+            extract model.ascents sortByDescending (.date >> Maybe.withDefault "")
 
 
 urlToItem : ItemType -> Int -> String
@@ -219,7 +199,7 @@ urlToCreateItem item criteria =
     Url.Builder.absolute [ prefix ] [ Url.Builder.string "criteria" (encode 0 <| Data.encodeCriteriumValueList criteria) ]
 
 
-paramsFromRoute : ItemPageItemForm -> Route -> ( Maybe Int, Criteria, FormState )
+paramsFromRoute : EntityForm -> Route -> ( Maybe Int, Criteria, FormState )
 paramsFromRoute form route =
     let
         maybeItem =
@@ -311,47 +291,3 @@ updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
             (\x -> { x | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }) model.form
     in
     { model | form = form, selectedItemId = maybeSelectedId }
-
-
-getRelationFromItem : ItemType -> ItemRelation
-getRelationFromItem item =
-    case item of
-        ClimbingRouteItem ->
-            climbingRouteRelations
-
-        AscentItem ->
-            ascentRelations
-
-        SectorItem ->
-            sectorRelations
-
-        AreaItem ->
-            areaRelations
-
-
-areaRelations : ItemRelation
-areaRelations =
-    { parent = Nothing
-    , child = Just SectorItem
-    }
-
-
-sectorRelations : Message.ItemRelation
-sectorRelations =
-    { parent = Just AreaItem
-    , child = Just ClimbingRouteItem
-    }
-
-
-ascentRelations : ItemRelation
-ascentRelations =
-    { parent = Just ClimbingRouteItem
-    , child = Nothing
-    }
-
-
-climbingRouteRelations : ItemRelation
-climbingRouteRelations =
-    { parent = Just SectorItem
-    , child = Just AscentItem
-    }

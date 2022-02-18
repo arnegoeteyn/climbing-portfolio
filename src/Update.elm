@@ -19,8 +19,8 @@ import Task
 import Update.Home
 import Update.ItemPage
 import Url
-import Utilities.ItemFormUtilities as ItemFormUtilities
-import Utilities.ItemPageUtilities as ItemPageUtilities exposing (getItemFromRoute, setItemPageModel)
+import Utilities.EntityFormUtilities as ItemFormUtilities
+import Utilities.EntityPageUtilities as ItemPageUtilities exposing (getItemFromRoute, setItemPageModel)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

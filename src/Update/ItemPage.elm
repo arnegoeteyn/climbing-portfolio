@@ -3,15 +3,15 @@ module Update.ItemPage exposing (..)
 import Dict exposing (Dict)
 import Message exposing (CriteriumUpdate(..), ItemPageMsg(..), ItemType(..), Msg, Route(..))
 import Model exposing (Criterium, Model)
-import Utilities.ItemFormUtilities as ItemFormUtilities
-import Utilities.ItemPageUtilities as ItemPageUtilities
+import Utilities.EntityFormUtilities as EntityFormUtilities
+import Utilities.EntityPageUtilities as EntityPageUtilities
 
 
 update : ItemPageMsg -> ItemType -> Model -> ( Model, Cmd Msg )
 update msg item model =
     let
         itemPageModel =
-            ItemPageUtilities.getModelFromItem item model
+            EntityPageUtilities.getModelFromItem item model
 
         ( updatedItemPageModel, updatedCmd ) =
             case msg of
@@ -21,7 +21,7 @@ update msg item model =
                 UpdateItem itemId ->
                     let
                         criteria =
-                            ItemFormUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
+                            EntityFormUtilities.getCriteriaFromItem itemId itemPageModel.itemType model
                     in
                     ( { itemPageModel | form = (\f -> { f | formState = Model.Update itemId, criteria = criteria }) itemPageModel.form }, Cmd.none )
 
@@ -29,10 +29,10 @@ update msg item model =
                     ( { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }, Cmd.none )
 
                 SelectItem id ->
-                    ( { itemPageModel | selectedItemId = Just id, form = ItemFormUtilities.closeForm itemPageModel.form }, Cmd.none )
+                    ( { itemPageModel | selectedItemId = Just id, form = EntityFormUtilities.closeForm itemPageModel.form }, Cmd.none )
 
                 FilterUpdateMessage key value ->
-                    ( { itemPageModel | filters = Dict.insert key value itemPageModel.filters }, Cmd.none )
+                    ( { itemPageModel | filterValues = Dict.insert key value itemPageModel.filterValues }, Cmd.none )
 
                 FormUpdateMessage criteriumUpdateMsg ->
                     let
@@ -70,4 +70,4 @@ update msg item model =
                     in
                     ( { itemPageModel | form = updatedForm }, Cmd.none )
     in
-    ( ItemPageUtilities.setItemPageModel updatedItemPageModel model, updatedCmd )
+    ( EntityPageUtilities.setItemPageModel updatedItemPageModel model, updatedCmd )

@@ -9,8 +9,8 @@ import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
 import Utilities exposing (filterList)
+import View.Page.EntityPage as EntityPage
 import View.Page.Home exposing (viewHome)
-import View.Page.ItemPage as ItemPage
 
 
 view : Model -> List (Html.Html Msg)
@@ -96,16 +96,16 @@ viewPage model =
                 viewHome model
 
             RoutesRoute _ _ ->
-                ItemPage.view ClimbingRouteItem model
+                EntityPage.viewEntityPage ClimbingRouteItem model
 
             AscentsRoute _ _ ->
-                ItemPage.view AscentItem model
+                EntityPage.viewEntityPage AscentItem model
 
             SectorsRoute _ _ ->
-                ItemPage.view SectorItem model
+                EntityPage.viewEntityPage SectorItem model
 
             AreasRoute _ _ ->
-                ItemPage.view AreaItem model
+                EntityPage.viewEntityPage AreaItem model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]

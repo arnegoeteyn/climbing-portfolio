@@ -32,11 +32,15 @@ type AppState
     | Ready
 
 
+type alias Filter =
+    ItemType -> String -> Bool
+
+
 type alias ItemPageModel =
     { itemType : ItemType
-    , form : ItemPageItemForm
+    , form : EntityForm
     , selectedItemId : Maybe Int
-    , filters : Dict String String
+    , filterValues : Dict String String
     , sortOnColumn : Maybe Int
     }
 
@@ -46,12 +50,17 @@ type alias HomeModel =
     }
 
 
-type alias ItemPageItemForm =
+type alias EntityForm =
     { criteria : Dict String Criterium
     , order : List String
     , parentId : Maybe String
     , formState : FormState
+    , entity : Entity
     }
+
+
+type alias Entity =
+    { itemType : ItemType, id : Maybe Int }
 
 
 type FormState

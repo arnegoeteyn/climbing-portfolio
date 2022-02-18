@@ -59,3 +59,24 @@ ifNot new maybe =
 maybeAccessor : (a -> String) -> Maybe a -> String
 maybeAccessor accessor maybeValue =
     Maybe.withDefault "" <| Maybe.map accessor maybeValue
+
+
+stringFromList : List String -> String
+stringFromList =
+    List.foldr (++) ""
+
+
+sortByDescending : (a -> comparable) -> List a -> List a
+sortByDescending func =
+    List.sortWith
+        (\a b ->
+            case compare (func a) (func b) of
+                LT ->
+                    GT
+
+                EQ ->
+                    EQ
+
+                GT ->
+                    LT
+        )
