@@ -69,9 +69,6 @@ viewAddItemButton type_ model =
 viewItemList : ItemType -> Model -> Html Msg
 viewItemList type_ model =
     let
-        headers =
-            EntityPageUtilities.entityPageTableHeaders type_
-
         filteredItems =
             List.filter
                 (\id ->
@@ -83,8 +80,8 @@ viewItemList type_ model =
             <|
                 EntityPageUtilities.sortedItems type_ model
 
-        a =
-            filteredItems |> Debug.log "test "
+        headers =
+            EntityPageUtilities.entityPageTableHeaders type_
     in
     div []
         [ h2 [] [ text <| String.fromInt (List.length filteredItems) ++ " items" ]

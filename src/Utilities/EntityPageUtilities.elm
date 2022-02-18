@@ -7,6 +7,7 @@ import Json.Encode exposing (encode)
 import List exposing (sortBy)
 import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
+import Set
 import Url.Builder
 import Utilities exposing (sortByDescending)
 import Utilities.EntityFormUtilities as ItemFormUtilities
@@ -49,10 +50,10 @@ getModelFromItem item model =
 
 
 entityPageTableHeaders : ItemType -> List String
-entityPageTableHeaders item =
-    case item of
+entityPageTableHeaders type_ =
+    case type_ of
         ClimbingRouteItem ->
-            [ "name", "grade", "kind", "sector" ]
+            [ "#", "name", "grade", "kind", "sector" ]
 
         AscentItem ->
             [ "date", "kind", "route" ]
@@ -106,7 +107,8 @@ tableValues type_ id model =
                 getClimbingRoute id model
                     |> Maybe.map
                         (\climbingRoute ->
-                            [ ( "name", climbingRoute.name )
+                            [ ( "#", String.fromInt <| Set.size <| Maybe.withDefault Set.empty climbingRoute.ascentIds )
+                            , ( "name", climbingRoute.name )
                             , ( "grade", climbingRoute.grade )
                             , ( "kind", climbingRouteKindToString climbingRoute.kind )
                             , ( "sector"
