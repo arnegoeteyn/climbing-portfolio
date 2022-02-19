@@ -153,9 +153,9 @@ matchesFilter type_ id key value model =
                                 "name" ->
                                     sector.name
 
-                                "sector" ->
+                                "area" ->
                                     sector.areaId
-                                        |> Maybe.andThen (\areaId -> getSector areaId model)
+                                        |> Maybe.andThen (\areaId -> getArea areaId model)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
