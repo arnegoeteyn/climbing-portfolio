@@ -6,6 +6,7 @@
 
 module Utilities.EntityUtilities exposing (..)
 
+import Chart.Attributes exposing (area)
 import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
 import Date
 import Dict
@@ -189,9 +190,9 @@ matchesFilter type_ id key value model =
                                 "name" ->
                                     sector.name
 
-                                "sector" ->
+                                "area" ->
                                     sector.areaId
-                                        |> Maybe.andThen (\areaId -> getSector model areaId)
+                                        |> Maybe.andThen (\areaId -> getArea model areaId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
