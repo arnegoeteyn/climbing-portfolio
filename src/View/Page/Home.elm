@@ -19,8 +19,8 @@ import Tailwind.Utilities as Tw
 viewHome : Model -> Html Msg
 viewHome model =
     H.div [ A.css [ Tw.grid ] ]
-        [ routesPerGrade Data.Sport model
-        , routesPerGrade Data.Boulder model
+        [ H.div [] [ H.h2 [] [ H.text "Sport routes" ], H.div [ A.css [ Tw.bg_purple_100 ] ] [ routesPerGrade Data.Sport model ] ]
+        , H.div [] [ H.h2 [] [ H.text "Boulders" ], H.div [ A.css [ Tw.bg_purple_100 ] ] [ routesPerGrade Data.Boulder model ] ]
         ]
 
 
@@ -58,7 +58,7 @@ routesPerGrade kind model =
                     [ C.eachBin <| \p bin -> [ C.label [ CA.moveDown 18 ] [ S.text <| Maybe.withDefault "" <| Array.get ((\x -> x - 1) <| round <| CI.getX <| CI.getMember bin) gradesValues ] (CI.getBottom p bin) ]
                     , C.yLabels [ CA.withGrid ]
                     , C.bars
-                        []
+                        [ CA.roundTop 0.5 ]
                         [ C.bar .y []
                             |> C.amongst model.homeModel.hovering (\_ -> [ CA.color "red" ])
                         ]
