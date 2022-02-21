@@ -1,6 +1,7 @@
 module Utilities.EntityUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
+import Date
 import Dict
 import Message exposing (ItemType(..))
 import Model exposing (Model)
@@ -23,6 +24,9 @@ getChildType type_ =
         AscentItem ->
             Nothing
 
+        TripItem ->
+            Nothing
+
 
 getChildren : ItemType -> Int -> Model -> Set Int
 getChildren type_ id model =
@@ -38,6 +42,9 @@ getChildren type_ id model =
                 getClimbingRoute id model |> Maybe.andThen .ascentIds
 
             AscentItem ->
+                Nothing
+
+            TripItem ->
                 Nothing
 
 
@@ -56,6 +63,9 @@ getParentType type_ =
         AscentItem ->
             Just ClimbingRouteItem
 
+        TripItem ->
+            Nothing
+
 
 getParent : ItemType -> Int -> Model -> Maybe Int
 getParent type_ id model =
@@ -71,6 +81,9 @@ getParent type_ id model =
 
         AscentItem ->
             getAscent id model |> Maybe.andThen .routeId
+
+        TripItem ->
+            Nothing
 
 
 getArea : Int -> Model -> Maybe Area
@@ -93,6 +106,11 @@ getAscent id model =
     Dict.get id model.ascents
 
 
+getTrip : Int -> Model -> Maybe Trip
+getTrip id model =
+    Dict.get id model.trips
+
+
 sortEntityBy : ItemType -> Int -> Model -> String
 sortEntityBy type_ id model =
     Maybe.withDefault "" <|
@@ -108,6 +126,9 @@ sortEntityBy type_ id model =
 
             AscentItem ->
                 getAscent id model |> Maybe.andThen .date
+
+            TripItem ->
+                getTrip id model |> Maybe.map (.from >> Date.toIsoString)
 
 
 
@@ -215,3 +236,6 @@ matchesFilter type_ id key value model =
                                 _ ->
                                     value
                         )
+
+        TripItem ->
+            True

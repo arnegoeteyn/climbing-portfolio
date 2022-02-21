@@ -107,6 +107,9 @@ viewPage model =
             AreasRoute _ _ ->
                 EntityPage.viewEntityPage AreaItem model
 
+            TripsRoute _ _ ->
+                EntityPage.viewEntityPage TripItem model
+
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]
         ]

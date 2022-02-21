@@ -1,12 +1,12 @@
 module Utilities.EntityFormUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, Trip, ascentKindToString, climbingRouteKindToString)
 import Dict exposing (Dict)
 import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
 import Set
 import Utilities
-import Utilities.EntityUtilities exposing (getParent, getParentType)
+import Utilities.EntityUtilities exposing (getParent)
 
 
 closeForm : EntityForm -> EntityForm
@@ -28,6 +28,9 @@ getFormFromItem item model =
 
         AscentItem ->
             model.ascentsModel.form
+
+        TripItem ->
+            model.tripsModel.form
 
 
 parentIdAccessor : (a -> Maybe Int) -> Maybe a -> String
@@ -53,6 +56,9 @@ getCriteriaFromItem requestId itemType model =
         SectorItem ->
             Dict.get requestId model.sectors
                 |> toSectorFormCriteria
+
+        TripItem ->
+            Dict.get requestId model.trips |> toTripFormCriteria
 
 
 toClimbingRouteFormCriteria : Maybe ClimbingRoute -> Criteria
@@ -80,6 +86,12 @@ toSectorFormCriteria maybeSector =
         [ ( "_parentId", { value = parentIdAccessor .areaId maybeSector, label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "name", { value = Utilities.maybeAccessor .name maybeSector, label = "name", type_ = Model.String } )
         ]
+
+
+toTripFormCriteria : Maybe Trip -> Criteria
+toTripFormCriteria maybeTrip =
+    Dict.fromList
+        []
 
 
 toAreaFormCriteria : Maybe Area -> Dict String Criterium

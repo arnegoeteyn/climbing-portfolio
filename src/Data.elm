@@ -1,7 +1,8 @@
 module Data exposing (..)
 
+import Date exposing (Date)
 import Dict exposing (Dict)
-import Json.Decode exposing (int, string)
+import Json.Decode exposing (fail, int, string, succeed)
 import Json.Decode.Extra exposing (set)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode
@@ -15,6 +16,7 @@ type alias JsonFile =
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
     , areas : Dict Int Area
+    , trips : Dict Int Trip
     }
 
 
@@ -36,12 +38,16 @@ jsonFileDecoder =
 
         decodedAreas =
             generalDecoder areaDecoder
+
+        decodedTrips =
+            generalDecoder tripDecoder
     in
-    Json.Decode.map4 JsonFile
+    Json.Decode.map5 JsonFile
         (Json.Decode.field "routes" <| decodedRoutes)
         (Json.Decode.field "ascents" <| decodedAscents)
         (Json.Decode.field "sectors" <| decodedSectors)
         (Json.Decode.field "areas" <| decodedAreas)
+        (Json.Decode.field "trips" <| decodedTrips)
 
 
 encodedJsonFile : JsonFile -> Json.Encode.Value
@@ -51,6 +57,7 @@ encodedJsonFile root =
         , ( "ascents", Json.Encode.list encodeAscent (Dict.values root.ascents) )
         , ( "sectors", Json.Encode.list encodeSector (Dict.values root.sectors) )
         , ( "areas", Json.Encode.list encodeArea (Dict.values root.areas) )
+        , ( "trips", Json.Encode.list encodeTrip (Dict.values root.trips) )
         ]
 
 
@@ -318,3 +325,43 @@ encodeCriteriumValue criteriumValue =
 encodeCriteriumValueList : List CriteriumValue -> Json.Encode.Value
 encodeCriteriumValueList l =
     Json.Encode.list encodeCriteriumValue l
+
+
+type alias Trip =
+    { id : Int
+    , from : Date
+    , to : Date
+    }
+
+
+tripDecoder : Json.Decode.Decoder Trip
+tripDecoder =
+    Json.Decode.succeed Trip
+        |> required "id" int
+        |> required "from" dateDecoder
+        |> required "to" dateDecoder
+
+
+encodeTrip : Trip -> Json.Encode.Value
+encodeTrip trip =
+    Json.Encode.object
+        [ ( "id", Json.Encode.int trip.id )
+        , ( "from", Json.Encode.string (Date.toIsoString trip.from) )
+        , ( "to", Json.Encode.string (Date.toIsoString trip.to) )
+        ]
+
+
+dateDecoder : Json.Decode.Decoder Date
+dateDecoder =
+    string
+        |> Json.Decode.andThen
+            (\val ->
+                case
+                    Date.fromIsoString val
+                of
+                    Err x ->
+                        x |> Debug.log "x" |> fail
+
+                    Ok value ->
+                        succeed value
+            )

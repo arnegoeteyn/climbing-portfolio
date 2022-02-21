@@ -29,11 +29,11 @@ routesPerGrade kind model =
     let
         grades =
             model.climbingRoutes
-                |> Dict.filter (\key value -> value.kind == kind)
-                |> Dict.filter (\key value -> not << Set.isEmpty << Maybe.withDefault Set.empty <| value.ascentIds)
-                |> Dict.map (\key item -> item.grade)
+                |> Dict.filter (\_ value -> value.kind == kind)
+                |> Dict.filter (\_ value -> not << Set.isEmpty << Maybe.withDefault Set.empty <| value.ascentIds)
+                |> Dict.map (\_ item -> item.grade)
                 |> Dict.foldl
-                    (\key value acc ->
+                    (\_ value acc ->
                         Dict.insert value
                             (Dict.get value acc |> Maybe.withDefault 0 |> (+) 1)
                             acc
@@ -68,7 +68,7 @@ routesPerGrade kind model =
                         <|
                             Array.toList gradesValues
                     , C.each model.homeModel.hovering <|
-                        \p bin ->
+                        \_ bin ->
                             [ C.tooltip bin
                                 []
                                 []

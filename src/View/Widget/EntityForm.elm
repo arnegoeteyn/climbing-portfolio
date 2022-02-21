@@ -1,6 +1,5 @@
 module View.Widget.EntityForm exposing (..)
 
-import Data
 import Date
 import DatePicker
 import Dict
@@ -103,4 +102,7 @@ viewItemSelector form id model =
 
                     AscentItem ->
                         EntityUtilities.getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ])
+
+                    TripItem ->
+                        EntityUtilities.getTrip id model |> Maybe.map (\c -> Utilities.stringFromList [ Date.toIsoString c.from ])
         ]

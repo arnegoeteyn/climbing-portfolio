@@ -1,6 +1,7 @@
 module View.Widget.EntityCard exposing (..)
 
 import Data
+import Date
 import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
 import Html.Styled.Attributes exposing (css, href, type_)
 import Html.Styled.Events exposing (onClick)
@@ -87,6 +88,9 @@ viewCardTitle type_ id model =
                     in
                     EntityUtilities.getAscent id model |> Maybe.map (\a -> Utilities.stringFromList [ dateOrEmpty a, " [", Data.ascentKindToString a.kind, "]" ])
 
+                TripItem ->
+                    EntityUtilities.getTrip id model |> Maybe.map (\trips -> Utilities.stringFromList [ Date.toIsoString trips.from, " - ", Date.toIsoString trips.to ])
+
 
 viewCardDescription : ItemType -> Int -> Model -> Html Msg
 viewCardDescription type_ id model =
@@ -104,6 +108,9 @@ viewCardDescription type_ id model =
 
                 AscentItem ->
                     EntityUtilities.getAscent id model |> Maybe.andThen .comment
+
+                TripItem ->
+                    EntityUtilities.getTrip id model |> Maybe.map (\trip -> Utilities.stringFromList [ Date.toIsoString trip.from, " - ", Date.toIsoString trip.to ])
 
 
 viewChildren : ItemType -> Int -> Model -> Html Msg

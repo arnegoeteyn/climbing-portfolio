@@ -32,6 +32,9 @@ init storageCache url key =
         ( areasModel, areasCmd ) =
             itemPageModel AreaItem parsedUrl
 
+        ( tripsModel, tripsCmd ) =
+            itemPageModel TripItem parsedUrl
+
         ( datePicker, datePickerCmd ) =
             DatePicker.init
 
@@ -39,7 +42,7 @@ init storageCache url key =
             decodeString jsonFileDecoder storageCache
 
         jsonFile =
-            Result.withDefault { climbingRoutes = Dict.empty, ascents = Dict.empty, sectors = Dict.empty, areas = Dict.empty } <| decodedStorage
+            Result.withDefault { climbingRoutes = Dict.empty, ascents = Dict.empty, sectors = Dict.empty, areas = Dict.empty, trips = Dict.empty } <| decodedStorage
     in
     ( { appState =
             case decodedStorage of
@@ -56,14 +59,16 @@ init storageCache url key =
       , ascents = jsonFile.ascents
       , sectors = jsonFile.sectors
       , areas = jsonFile.areas
+      , trips = jsonFile.trips
       , climbingRoutesModel = climbingRoutesModel
       , homeModel = { hovering = [] }
       , sectorsModel = sectorsModel
       , ascentsModel = ascentsModel
       , areasModel = areasModel
+      , tripsModel = tripsModel
       , datePicker = datePicker
       }
-    , Cmd.batch [ Cmd.map (ToDatePicker AscentItem "") datePickerCmd, routesCmd, sectorsCmd, areasCmd, ascentsCmd ]
+    , Cmd.batch [ Cmd.map (ToDatePicker AscentItem "") datePickerCmd, routesCmd, sectorsCmd, areasCmd, ascentsCmd, tripsCmd ]
     )
 
 
@@ -83,6 +88,9 @@ itemPageModel t route =
 
                 AreaItem ->
                     areaForm
+
+                TripItem ->
+                    tripForm
 
         ( selectedItem, criteria, formState ) =
             EntityPageUtilities.paramsFromRoute form route
@@ -137,6 +145,16 @@ areaForm =
     }
 
 
+tripForm : EntityForm
+tripForm =
+    { criteria = EntityFormUtilities.toTripFormCriteria Nothing
+    , order = []
+    , parentId = Nothing
+    , formState = Hidden
+    , entity = Model.Entity TripItem Nothing
+    }
+
+
 routeParser : Parser (Route -> a) a
 routeParser =
     Parser.oneOf
@@ -145,6 +163,7 @@ routeParser =
         , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected" <?> Query.string "criteria")
         , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected" <?> Query.string "criteria")
         , Parser.map AreasRoute (Parser.s "areas" <?> Query.int "selected" <?> Query.string "criteria")
+        , Parser.map TripsRoute (Parser.s "trips" <?> Query.int "selected" <?> Query.string "criteria")
         ]
 
 
