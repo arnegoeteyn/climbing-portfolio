@@ -1,10 +1,13 @@
 module Utilities exposing (..)
 
+import Date
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, input)
 import Html.Styled.Attributes exposing (placeholder, type_, value)
 import Html.Styled.Events exposing (onInput)
+import Json.Decode exposing (maybe)
 import Json.Encode
+import List exposing (sortBy)
 
 
 filterList : List ( a, Bool, Maybe a ) -> List a
@@ -66,6 +69,11 @@ stringFromList =
     List.foldr (++) ""
 
 
+maybeDateToString : Maybe Date.Date -> String
+maybeDateToString maybeDate =
+    Maybe.map Date.toIsoString maybeDate |> Maybe.withDefault ""
+
+
 sortByDescending : (a -> comparable) -> List a -> List a
 sortByDescending func =
     List.sortWith
@@ -80,3 +88,8 @@ sortByDescending func =
                 GT ->
                     LT
         )
+
+
+sortDescending : List comparable -> List comparable
+sortDescending =
+    sortByDescending identity

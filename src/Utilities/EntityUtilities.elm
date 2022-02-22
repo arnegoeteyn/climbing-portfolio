@@ -1,3 +1,9 @@
+--| Generic (13)
+--| Acessors (114)
+--| Filters (143)
+--| Trip (254)
+
+
 module Utilities.EntityUtilities exposing (..)
 
 import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
@@ -7,6 +13,10 @@ import Message exposing (ItemType(..))
 import Model exposing (Model)
 import Set exposing (Set)
 import Utilities
+
+
+
+--| Generic
 
 
 getChildType : ItemType -> Maybe ItemType
@@ -86,6 +96,30 @@ getParent type_ id model =
             Nothing
 
 
+sortEntityBy : ItemType -> Int -> Model -> String
+sortEntityBy type_ id model =
+    Maybe.withDefault "" <|
+        case type_ of
+            AreaItem ->
+                getArea id model |> Maybe.map .name
+
+            SectorItem ->
+                getSector id model |> Maybe.map .name
+
+            ClimbingRouteItem ->
+                getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
+
+            AscentItem ->
+                getAscent id model |> Maybe.andThen (\ascent -> Maybe.map Date.toIsoString ascent.date)
+
+            TripItem ->
+                getTrip id model |> Maybe.map (.from >> Date.toIsoString)
+
+
+
+--| Acessors
+
+
 getArea : Int -> Model -> Maybe Area
 getArea id model =
     Dict.get id model.areas
@@ -111,27 +145,8 @@ getTrip id model =
     Dict.get id model.trips
 
 
-sortEntityBy : ItemType -> Int -> Model -> String
-sortEntityBy type_ id model =
-    Maybe.withDefault "" <|
-        case type_ of
-            AreaItem ->
-                getArea id model |> Maybe.map .name
 
-            SectorItem ->
-                getSector id model |> Maybe.map .name
-
-            ClimbingRouteItem ->
-                getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
-
-            AscentItem ->
-                getAscent id model |> Maybe.andThen .date
-
-            TripItem ->
-                getTrip id model |> Maybe.map (.from >> Date.toIsoString)
-
-
-
+--| Filters
 -- Elm does not allow custom comparable items so these can't be made a type
 -- Elm also doesn't allow constants in branches so it's pretty messy
 
@@ -222,7 +237,7 @@ matchesFilter type_ id key value model =
                         (String.toLower <|
                             case key of
                                 "date" ->
-                                    ascent.date |> Maybe.withDefault ""
+                                    ascent.date |> Maybe.map Date.toIsoString |> Maybe.withDefault ""
 
                                 "kind" ->
                                     Data.ascentKindToString ascent.kind
@@ -239,3 +254,37 @@ matchesFilter type_ id key value model =
 
         TripItem ->
             True
+
+
+
+--| Trip
+
+
+tripTitle : Trip -> String
+tripTitle trip =
+    Utilities.stringFromList [ Date.toIsoString trip.from, " - ", Date.toIsoString trip.to ]
+
+
+groupedRoutesFromTrip : Trip -> Model -> List ( String, Int )
+groupedRoutesFromTrip trip model =
+    ascentsFromTrip trip model
+        |> List.map (\item -> getClimbingRoute (Maybe.withDefault -1 item.routeId) model)
+        |> List.filterMap identity
+        |> List.foldl
+            (\value acc ->
+                Dict.insert value.grade
+                    (Dict.get value.grade acc |> Maybe.withDefault 0 |> (+) 1)
+                    acc
+            )
+            Dict.empty
+        |> Dict.toList
+        |> Utilities.sortDescending
+
+
+ascentsFromTrip : Trip -> Model -> List Ascent
+ascentsFromTrip trip model =
+    Dict.filter
+        (\_ ascent -> Maybe.map (Date.isBetween trip.from trip.to) ascent.date |> Maybe.withDefault False)
+        model.ascents
+        |> Dict.toList
+        |> List.map Tuple.second

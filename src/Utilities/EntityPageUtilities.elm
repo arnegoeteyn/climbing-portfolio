@@ -1,6 +1,6 @@
 module Utilities.EntityPageUtilities exposing (..)
 
-import Data exposing (ClimbingRouteKind(..), CriteriumValue, Trip, ascentKindToString, climbingRouteKindToString)
+import Data exposing (ClimbingRouteKind(..), CriteriumValue, ascentKindToString, climbingRouteKindToString)
 import Date
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
@@ -10,7 +10,7 @@ import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
 import Set
 import Url.Builder
-import Utilities exposing (sortByDescending)
+import Utilities exposing (maybeDateToString, sortByDescending)
 import Utilities.EntityFormUtilities as ItemFormUtilities
 import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector, getTrip)
 
@@ -134,7 +134,7 @@ tableValues type_ id model =
                 getAscent id model
                     |> Maybe.map
                         (\ascent ->
-                            [ ( "date", Maybe.withDefault "" ascent.date )
+                            [ ( "date", maybeDateToString ascent.date )
                             , ( "kind", ascentKindToString ascent.kind )
                             , ( "route"
                               , ascent.routeId
@@ -172,7 +172,7 @@ sortedItems type_ model =
             extract model.climbingRoutes sortByDescending .grade
 
         AscentItem ->
-            extract model.ascents sortByDescending (.date >> Maybe.withDefault "")
+            extract model.ascents sortByDescending (.date >> maybeDateToString)
 
         TripItem ->
             extract model.trips List.sortBy (.from >> Date.toIsoString)

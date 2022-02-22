@@ -147,7 +147,7 @@ encodeClimbingRoute route =
 type alias Ascent =
     { id : Int
     , routeId : Maybe Int
-    , date : Maybe String
+    , date : Maybe Date
     , comment : Maybe String
     , kind : AscentKind
     }
@@ -226,7 +226,7 @@ ascentsDecoder =
     Json.Decode.succeed Ascent
         |> required "id" int
         |> optional "routeId" (Json.Decode.map Just int) Nothing
-        |> optional "date" (Json.Decode.map Just string) Nothing
+        |> optional "date" (Json.Decode.map Just dateDecoder) Nothing
         |> optional "comment" (Json.Decode.map Just string) Nothing
         |> required "kind" ascentKindDecoder
 
@@ -237,7 +237,7 @@ encodeAscent ascent =
         [ ( "id", Json.Encode.int ascent.id )
         , ( "routeId", encodeNullable Json.Encode.int ascent.routeId )
         , ( "comment", encodeNullable Json.Encode.string ascent.comment )
-        , ( "date", encodeNullable Json.Encode.string ascent.date )
+        , ( "date", encodeNullable Json.Encode.string <| Maybe.map Date.toIsoString ascent.date )
         , ( "kind", encodeAscentKind ascent.kind )
         ]
 
@@ -360,7 +360,7 @@ dateDecoder =
                     Date.fromIsoString val
                 of
                     Err x ->
-                        x |> Debug.log "x" |> fail
+                        fail x
 
                     Ok value ->
                         succeed value

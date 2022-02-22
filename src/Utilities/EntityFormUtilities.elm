@@ -1,6 +1,7 @@
 module Utilities.EntityFormUtilities exposing (..)
 
 import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, Trip, ascentKindToString, climbingRouteKindToString)
+import Date
 import Dict exposing (Dict)
 import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
@@ -107,7 +108,7 @@ toAscentFormCriteria maybeAscent =
     Dict.fromList
         [ ( "_parentId", { value = parentIdAccessor .routeId maybeAscent, label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "comment", { value = Utilities.maybeAccessor (.comment >> Maybe.withDefault "") maybeAscent, label = "comment", type_ = Model.String } )
-        , ( "date", { value = Utilities.maybeAccessor (.date >> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
+        , ( "date", { value = Utilities.maybeAccessor (\ascent -> Maybe.map Date.toIsoString ascent.date |> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
         , ( "kind"
           , { value =
                 Utilities.maybeAccessor
@@ -287,7 +288,7 @@ ascentFromForm model form =
             getCriteriumValueFromForm "comment" form
 
         maybeDate =
-            getCriteriumValueFromForm "date" form
+            getCriteriumValueFromForm "date" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
 
         maybeKind =
             getCriteriumValueFromForm "kind" form
