@@ -148,7 +148,7 @@ areaForm =
 tripForm : EntityForm
 tripForm =
     { criteria = EntityFormUtilities.toTripFormCriteria Nothing
-    , order = []
+    , order = [ "from", "to" ]
     , parentId = Nothing
     , formState = Hidden
     , entity = Model.Entity TripItem Nothing

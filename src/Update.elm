@@ -186,12 +186,16 @@ update msg model =
                             { model | areas = Dict.insert newArea.id newArea model.areas }
 
                         TripItem ->
-                            model
+                            let
+                                maybeNewTrip =
+                                    ItemFormUtilities.tripFromForm model form
+                            in
+                            Maybe.map (\newTrip -> { model | trips = Dict.insert newTrip.id newTrip model.trips }) maybeNewTrip
+                                |> Maybe.withDefault model
             in
             ( newModel, Cmd.none )
 
         ToDatePicker item criterium subMsg ->
-            -- todo rewrite this to be able to work with multiple datepickers in the application
             let
                 ( newDatePicker, event ) =
                     DatePicker.update DatePicker.defaultSettings subMsg model.datePicker

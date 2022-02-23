@@ -15,6 +15,10 @@ closeForm form =
     { form | formState = Hidden }
 
 
+
+--| Encode
+
+
 getFormFromItem : ItemType -> Model -> EntityForm
 getFormFromItem item model =
     case item of
@@ -92,7 +96,19 @@ toSectorFormCriteria maybeSector =
 toTripFormCriteria : Maybe Trip -> Criteria
 toTripFormCriteria maybeTrip =
     Dict.fromList
-        []
+        [ ( "from"
+          , { value = Utilities.maybeAccessor (.from >> Just >> Utilities.maybeDateToString) maybeTrip
+            , label = "from"
+            , type_ = Model.Date
+            }
+          )
+        , ( "to"
+          , { value = Utilities.maybeAccessor (.to >> Just >> Utilities.maybeDateToString) maybeTrip
+            , label = "to"
+            , type_ = Model.Date
+            }
+          )
+        ]
 
 
 toAreaFormCriteria : Maybe Area -> Dict String Criterium
@@ -119,6 +135,25 @@ toAscentFormCriteria maybeAscent =
             }
           )
         ]
+
+
+
+--| Utilities
+
+
+updateCriterium : String -> String -> Criteria -> Criteria
+updateCriterium key value criteria =
+    let
+        formItem =
+            Dict.get key criteria
+
+        updatedFormItem =
+            Maybe.map (\item -> { item | value = value }) formItem
+
+        updatedCriteria =
+            Maybe.map (\c -> Dict.insert key c criteria) updatedFormItem
+    in
+    Maybe.withDefault criteria updatedCriteria
 
 
 getCriteriumValueFromForm : String -> EntityForm -> Maybe String
@@ -186,6 +221,10 @@ modifiedParentCollection childType newId maybeParent childAccessor updateChildId
                         |> Maybe.withDefault modifiedCollection
     in
     modifiedOldParent
+
+
+
+--| Decoders
 
 
 climbingRouteFromForm : Model -> EntityForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
@@ -325,16 +364,24 @@ areaFromForm model form =
     }
 
 
-updateCriterium : String -> String -> Criteria -> Criteria
-updateCriterium key value criteria =
+tripFromForm : Model -> EntityForm -> Maybe Data.Trip
+tripFromForm model form =
     let
-        formItem =
-            Dict.get key criteria
+        newTripId =
+            getNewIdFromFrom form model.trips
 
-        updatedFormItem =
-            Maybe.map (\item -> { item | value = value }) formItem
+        maybeFrom =
+            getCriteriumValueFromForm "from" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
 
-        updatedCriteria =
-            Maybe.map (\c -> Dict.insert key c criteria) updatedFormItem
+        maybeTo =
+            getCriteriumValueFromForm "to" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
     in
-    Maybe.withDefault criteria updatedCriteria
+    Maybe.map2
+        (\from to ->
+            { id = newTripId
+            , from = from
+            , to = to
+            }
+        )
+        maybeFrom
+        maybeTo
