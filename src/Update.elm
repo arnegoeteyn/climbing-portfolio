@@ -87,11 +87,8 @@ update msg model =
                     , Cmd.none
                     )
 
-                Err x ->
-                    Debug.log "err" x
-                        |> (\_ ->
-                                ( model, Cmd.none )
-                           )
+                Err _ ->
+                    ( model, Cmd.none )
 
         ExportRequested ->
             let
