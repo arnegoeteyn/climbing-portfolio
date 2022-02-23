@@ -1,6 +1,7 @@
 module Utilities.EntityPageUtilities exposing (..)
 
 import Data exposing (ClimbingRouteKind(..), CriteriumValue, ascentKindToString, climbingRouteKindToString)
+import Date
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
@@ -9,9 +10,9 @@ import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
 import Set
 import Url.Builder
-import Utilities exposing (sortByDescending)
+import Utilities exposing (maybeDateToString, sortByDescending)
 import Utilities.EntityFormUtilities as ItemFormUtilities
-import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector)
+import Utilities.EntityUtilities as EntityUtilities exposing (getArea, getAscent, getClimbingRoute, getSector, getTrip)
 
 
 getItemFromRoute : Route -> Maybe ItemType
@@ -48,6 +49,9 @@ getModelFromItem item model =
         AreaItem ->
             model.areasModel
 
+        TripItem ->
+            model.tripsModel
+
 
 entityPageTableHeaders : ItemType -> List String
 entityPageTableHeaders type_ =
@@ -63,6 +67,9 @@ entityPageTableHeaders type_ =
 
         AreaItem ->
             [ "name", "country" ]
+
+        TripItem ->
+            [ "from", "to" ]
 
 
 selectedItemId : ItemType -> Model -> Maybe Int
@@ -127,7 +134,7 @@ tableValues type_ id model =
                 getAscent id model
                     |> Maybe.map
                         (\ascent ->
-                            [ ( "date", Maybe.withDefault "" ascent.date )
+                            [ ( "date", maybeDateToString ascent.date )
                             , ( "kind", ascentKindToString ascent.kind )
                             , ( "route"
                               , ascent.routeId
@@ -135,6 +142,15 @@ tableValues type_ id model =
                                     |> Maybe.map .name
                                     |> Maybe.withDefault ""
                               )
+                            ]
+                        )
+
+            TripItem ->
+                getTrip id model
+                    |> Maybe.map
+                        (\trip ->
+                            [ ( "from", Date.toIsoString trip.from )
+                            , ( "to", Date.toIsoString trip.to )
                             ]
                         )
 
@@ -156,7 +172,10 @@ sortedItems type_ model =
             extract model.climbingRoutes sortByDescending .grade
 
         AscentItem ->
-            extract model.ascents sortByDescending (.date >> Maybe.withDefault "")
+            extract model.ascents sortByDescending (.date >> maybeDateToString)
+
+        TripItem ->
+            extract model.trips List.sortBy (.from >> Date.toIsoString)
 
 
 urlToItem : ItemType -> Int -> String
@@ -175,6 +194,9 @@ urlToItem t id =
 
                 Message.AscentItem ->
                     "ascents"
+
+                Message.TripItem ->
+                    "trips"
     in
     Url.Builder.absolute [ prefix ] [ Url.Builder.int "selected" id ]
 
@@ -195,6 +217,9 @@ urlToCreateItem item criteria =
 
                 Message.AscentItem ->
                     "ascents"
+
+                Message.TripItem ->
+                    "trips"
     in
     Url.Builder.absolute [ prefix ] [ Url.Builder.string "criteria" (encode 0 <| Data.encodeCriteriumValueList criteria) ]
 
@@ -282,6 +307,9 @@ setItemPageModel itemPageModel model =
 
         AreaItem ->
             { model | areasModel = itemPageModel }
+
+        TripItem ->
+            { model | tripsModel = itemPageModel }
 
 
 updateItemPageModelWithParams : ItemPageModel -> ( Maybe Int, Criteria, FormState ) -> ItemPageModel

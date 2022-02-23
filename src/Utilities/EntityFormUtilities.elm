@@ -1,17 +1,22 @@
 module Utilities.EntityFormUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, ascentKindToString, climbingRouteKindToString)
+import Data exposing (Area, Ascent, ClimbingRoute, ClimbingRouteKind(..), Sector, Trip, ascentKindToString, climbingRouteKindToString)
+import Date
 import Dict exposing (Dict)
 import Message exposing (ItemType(..))
 import Model exposing (Criteria, Criterium, EntityForm, FormState(..), Model)
 import Set
 import Utilities
-import Utilities.EntityUtilities exposing (getParent, getParentType)
+import Utilities.EntityUtilities exposing (getParent)
 
 
 closeForm : EntityForm -> EntityForm
 closeForm form =
     { form | formState = Hidden }
+
+
+
+--| Encode
 
 
 getFormFromItem : ItemType -> Model -> EntityForm
@@ -28,6 +33,9 @@ getFormFromItem item model =
 
         AscentItem ->
             model.ascentsModel.form
+
+        TripItem ->
+            model.tripsModel.form
 
 
 parentIdAccessor : (a -> Maybe Int) -> Maybe a -> String
@@ -53,6 +61,9 @@ getCriteriaFromItem requestId itemType model =
         SectorItem ->
             Dict.get requestId model.sectors
                 |> toSectorFormCriteria
+
+        TripItem ->
+            Dict.get requestId model.trips |> toTripFormCriteria
 
 
 toClimbingRouteFormCriteria : Maybe ClimbingRoute -> Criteria
@@ -82,6 +93,24 @@ toSectorFormCriteria maybeSector =
         ]
 
 
+toTripFormCriteria : Maybe Trip -> Criteria
+toTripFormCriteria maybeTrip =
+    Dict.fromList
+        [ ( "from"
+          , { value = Utilities.maybeAccessor (.from >> Just >> Utilities.maybeDateToString) maybeTrip
+            , label = "from"
+            , type_ = Model.Date
+            }
+          )
+        , ( "to"
+          , { value = Utilities.maybeAccessor (.to >> Just >> Utilities.maybeDateToString) maybeTrip
+            , label = "to"
+            , type_ = Model.Date
+            }
+          )
+        ]
+
+
 toAreaFormCriteria : Maybe Area -> Dict String Criterium
 toAreaFormCriteria maybeArea =
     Dict.fromList
@@ -95,7 +124,7 @@ toAscentFormCriteria maybeAscent =
     Dict.fromList
         [ ( "_parentId", { value = parentIdAccessor .routeId maybeAscent, label = "_parentId", type_ = Model.Enumeration [] } )
         , ( "comment", { value = Utilities.maybeAccessor (.comment >> Maybe.withDefault "") maybeAscent, label = "comment", type_ = Model.String } )
-        , ( "date", { value = Utilities.maybeAccessor (.date >> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
+        , ( "date", { value = Utilities.maybeAccessor (\ascent -> Maybe.map Date.toIsoString ascent.date |> Maybe.withDefault "") maybeAscent, label = "date", type_ = Model.Date } )
         , ( "kind"
           , { value =
                 Utilities.maybeAccessor
@@ -106,6 +135,25 @@ toAscentFormCriteria maybeAscent =
             }
           )
         ]
+
+
+
+--| Utilities
+
+
+updateCriterium : String -> String -> Criteria -> Criteria
+updateCriterium key value criteria =
+    let
+        formItem =
+            Dict.get key criteria
+
+        updatedFormItem =
+            Maybe.map (\item -> { item | value = value }) formItem
+
+        updatedCriteria =
+            Maybe.map (\c -> Dict.insert key c criteria) updatedFormItem
+    in
+    Maybe.withDefault criteria updatedCriteria
 
 
 getCriteriumValueFromForm : String -> EntityForm -> Maybe String
@@ -173,6 +221,10 @@ modifiedParentCollection childType newId maybeParent childAccessor updateChildId
                         |> Maybe.withDefault modifiedCollection
     in
     modifiedOldParent
+
+
+
+--| Decoders
 
 
 climbingRouteFromForm : Model -> EntityForm -> ( Data.ClimbingRoute, Dict.Dict Int Data.Sector )
@@ -275,7 +327,7 @@ ascentFromForm model form =
             getCriteriumValueFromForm "comment" form
 
         maybeDate =
-            getCriteriumValueFromForm "date" form
+            getCriteriumValueFromForm "date" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
 
         maybeKind =
             getCriteriumValueFromForm "kind" form
@@ -312,16 +364,24 @@ areaFromForm model form =
     }
 
 
-updateCriterium : String -> String -> Criteria -> Criteria
-updateCriterium key value criteria =
+tripFromForm : Model -> EntityForm -> Maybe Data.Trip
+tripFromForm model form =
     let
-        formItem =
-            Dict.get key criteria
+        newTripId =
+            getNewIdFromFrom form model.trips
 
-        updatedFormItem =
-            Maybe.map (\item -> { item | value = value }) formItem
+        maybeFrom =
+            getCriteriumValueFromForm "from" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
 
-        updatedCriteria =
-            Maybe.map (\c -> Dict.insert key c criteria) updatedFormItem
+        maybeTo =
+            getCriteriumValueFromForm "to" form |> Maybe.andThen (Date.fromIsoString >> Result.toMaybe)
     in
-    Maybe.withDefault criteria updatedCriteria
+    Maybe.map2
+        (\from to ->
+            { id = newTripId
+            , from = from
+            , to = to
+            }
+        )
+        maybeFrom
+        maybeTo

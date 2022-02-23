@@ -13,6 +13,7 @@ type Route
     | RoutesRoute (Maybe Int) (Maybe String) -- selected, criteria
     | SectorsRoute (Maybe Int) (Maybe String)
     | AreasRoute (Maybe Int) (Maybe String)
+    | TripsRoute (Maybe Int) (Maybe String)
     | NotFoundRoute
 
 
@@ -21,6 +22,7 @@ type ItemType
     | AscentItem
     | SectorItem
     | AreaItem
+    | TripItem
 
 
 type alias ItemRelation =

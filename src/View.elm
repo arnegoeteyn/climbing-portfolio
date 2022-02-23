@@ -40,6 +40,7 @@ viewHeader model =
                 , navLink (RoutesRoute Nothing Nothing) { url = "/routes", caption = "Routes" }
                 , navLink (SectorsRoute Nothing Nothing) { url = "/sectors", caption = "Sectors" }
                 , navLink (AreasRoute Nothing Nothing) { url = "/areas", caption = "Areas" }
+                , navLink (TripsRoute Nothing Nothing) { url = "/trips", caption = "Trips" }
                 ]
 
         navAttributes =
@@ -106,6 +107,9 @@ viewPage model =
 
             AreasRoute _ _ ->
                 EntityPage.viewEntityPage AreaItem model
+
+            TripsRoute _ _ ->
+                EntityPage.viewEntityPage TripItem model
 
             NotFoundRoute ->
                 h1 [] [ text "404 :(" ]
