@@ -66,7 +66,20 @@ maybeAccessor accessor maybeValue =
 
 stringFromList : List String -> String
 stringFromList =
-    List.foldr (++) ""
+    stringFromListWith ""
+
+
+stringFromListWith : String -> List String -> String
+stringFromListWith seperator list =
+    case list of
+        [] ->
+            ""
+
+        [ x ] ->
+            x
+
+        x :: xs ->
+            x ++ seperator ++ stringFromListWith seperator xs
 
 
 maybeDateToString : Maybe Date.Date -> String

@@ -71,13 +71,13 @@ viewCardTitle type_ id model =
     Maybe.withDefault (text "") <|
         case type_ of
             AreaItem ->
-                EntityUtilities.getArea id model |> Maybe.map (.name >> text)
+                EntityUtilities.getArea model id |> Maybe.map (.name >> text)
 
             SectorItem ->
-                EntityUtilities.getSector id model |> Maybe.map (.name >> text)
+                EntityUtilities.getSector model id |> Maybe.map (.name >> text)
 
             ClimbingRouteItem ->
-                EntityUtilities.getClimbingRoute id model |> Maybe.map ((\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ]) >> text)
+                EntityUtilities.getClimbingRoute model id |> Maybe.map ((\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ]) >> text)
 
             AscentItem ->
                 let
@@ -95,13 +95,13 @@ viewCardDescription type_ id model =
     Maybe.withDefault (text "") <|
         case type_ of
             AreaItem ->
-                EntityUtilities.getArea id model |> Maybe.map (.country >> text)
+                EntityUtilities.getArea model id |> Maybe.map (.country >> text)
 
             SectorItem ->
                 Nothing
 
             ClimbingRouteItem ->
-                EntityUtilities.getClimbingRoute id model |> Maybe.andThen .comment |> Maybe.map text
+                EntityUtilities.getClimbingRoute model id |> Maybe.andThen .comment |> Maybe.map text
 
             AscentItem ->
                 EntityUtilities.getAscent id model |> Maybe.andThen .comment |> Maybe.map text
@@ -154,6 +154,11 @@ viewAddChildLink type_ id _ =
 --| Trips
 
 
+areasFromTrip : Model -> Data.Trip -> Html msg
+areasFromTrip model trip =
+    text <| Utilities.stringFromListWith " - " (EntityUtilities.areasFromTrip model trip |> List.map .name)
+
+
 tripDescription : Model -> Data.Trip -> Html msg
 tripDescription model trip =
     let
@@ -163,8 +168,11 @@ tripDescription model trip =
                 , Html.Styled.td [] [ text <| String.fromInt amount ]
                 ]
     in
-    table [] <|
-        List.map renderGrade (EntityUtilities.groupedRoutesFromTrip trip model)
+    div []
+        [ areasFromTrip model trip
+        , table [] <|
+            List.map renderGrade (EntityUtilities.groupedRoutesFromTrip trip model)
+        ]
 
 
 tripTitle : Data.Trip -> Html msg

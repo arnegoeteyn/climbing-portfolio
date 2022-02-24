@@ -43,13 +43,13 @@ getChildren type_ id model =
     Maybe.withDefault Set.empty <|
         case type_ of
             AreaItem ->
-                getArea id model |> Maybe.andThen .sectorIds
+                getArea model id |> Maybe.andThen .sectorIds
 
             SectorItem ->
-                getSector id model |> Maybe.andThen .routeIds
+                getSector model id |> Maybe.andThen .routeIds
 
             ClimbingRouteItem ->
-                getClimbingRoute id model |> Maybe.andThen .ascentIds
+                getClimbingRoute model id |> Maybe.andThen .ascentIds
 
             AscentItem ->
                 Nothing
@@ -84,10 +84,10 @@ getParent type_ id model =
             Nothing
 
         SectorItem ->
-            getSector id model |> Maybe.andThen .areaId
+            getSector model id |> Maybe.andThen .areaId
 
         ClimbingRouteItem ->
-            getClimbingRoute id model |> Maybe.andThen .sectorId
+            getClimbingRoute model id |> Maybe.andThen .sectorId
 
         AscentItem ->
             getAscent id model |> Maybe.andThen .routeId
@@ -101,13 +101,13 @@ sortEntityBy type_ id model =
     Maybe.withDefault "" <|
         case type_ of
             AreaItem ->
-                getArea id model |> Maybe.map .name
+                getArea model id |> Maybe.map .name
 
             SectorItem ->
-                getSector id model |> Maybe.map .name
+                getSector model id |> Maybe.map .name
 
             ClimbingRouteItem ->
-                getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
+                getClimbingRoute model id |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
 
             AscentItem ->
                 getAscent id model |> Maybe.andThen (\ascent -> Maybe.map Date.toIsoString ascent.date)
@@ -120,18 +120,18 @@ sortEntityBy type_ id model =
 --| Acessors
 
 
-getArea : Int -> Model -> Maybe Area
-getArea id model =
+getArea : Model -> Int -> Maybe Area
+getArea model id =
     Dict.get id model.areas
 
 
-getSector : Int -> Model -> Maybe Sector
-getSector id model =
+getSector : Model -> Int -> Maybe Sector
+getSector model id =
     Dict.get id model.sectors
 
 
-getClimbingRoute : Int -> Model -> Maybe ClimbingRoute
-getClimbingRoute id model =
+getClimbingRoute : Model -> Int -> Maybe ClimbingRoute
+getClimbingRoute model id =
     Dict.get id model.climbingRoutes
 
 
@@ -157,7 +157,7 @@ matchesFilter type_ id key value model =
         AreaItem ->
             let
                 maybeArea =
-                    getArea id model
+                    getArea model id
             in
             case maybeArea of
                 Nothing ->
@@ -178,7 +178,7 @@ matchesFilter type_ id key value model =
                         )
 
         SectorItem ->
-            case getSector id model of
+            case getSector model id of
                 Nothing ->
                     True
 
@@ -191,7 +191,7 @@ matchesFilter type_ id key value model =
 
                                 "sector" ->
                                     sector.areaId
-                                        |> Maybe.andThen (\areaId -> getSector areaId model)
+                                        |> Maybe.andThen (\areaId -> getSector model areaId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
@@ -200,7 +200,7 @@ matchesFilter type_ id key value model =
                         )
 
         ClimbingRouteItem ->
-            case getClimbingRoute id model of
+            case getClimbingRoute model id of
                 Nothing ->
                     True
 
@@ -216,7 +216,7 @@ matchesFilter type_ id key value model =
 
                                 "sector" ->
                                     climbingRoute.sectorId
-                                        |> Maybe.andThen (\sectorId -> getSector sectorId model)
+                                        |> Maybe.andThen (\sectorId -> getSector model sectorId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
@@ -244,7 +244,7 @@ matchesFilter type_ id key value model =
 
                                 "route" ->
                                     ascent.routeId
-                                        |> Maybe.andThen (\routeId -> getClimbingRoute routeId model)
+                                        |> Maybe.andThen (\routeId -> getClimbingRoute model routeId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
@@ -254,6 +254,33 @@ matchesFilter type_ id key value model =
 
         TripItem ->
             True
+
+
+
+--| Sector
+
+
+areaFromSector : Model -> Sector -> Maybe Area
+areaFromSector model sector =
+    sector.areaId |> Maybe.andThen (getArea model)
+
+
+
+--| ClimbingRoute
+
+
+sectorFromClimbingRoute : Model -> ClimbingRoute -> Maybe Sector
+sectorFromClimbingRoute model route =
+    route.sectorId |> Maybe.andThen (getSector model)
+
+
+
+--| Ascent
+
+
+climbingRouteFromAscent : Model -> Ascent -> Maybe ClimbingRoute
+climbingRouteFromAscent model ascent =
+    ascent.routeId |> Maybe.andThen (getClimbingRoute model)
 
 
 
@@ -268,7 +295,7 @@ tripTitle trip =
 groupedRoutesFromTrip : Trip -> Model -> List ( String, Int )
 groupedRoutesFromTrip trip model =
     ascentsFromTrip trip model
-        |> List.map (\item -> getClimbingRoute (Maybe.withDefault -1 item.routeId) model)
+        |> List.map (\item -> getClimbingRoute model (Maybe.withDefault -1 item.routeId))
         |> List.filterMap identity
         |> List.foldl
             (\value acc ->
@@ -288,3 +315,16 @@ ascentsFromTrip trip model =
         model.ascents
         |> Dict.toList
         |> List.map Tuple.second
+
+
+areasFromTrip : Model -> Trip -> List Area
+areasFromTrip model trip =
+    ascentsFromTrip trip model
+        |> List.map (climbingRouteFromAscent model)
+        |> List.map (Maybe.andThen (sectorFromClimbingRoute model))
+        |> List.map (Maybe.andThen (\sector -> getParent SectorItem sector.id model))
+        |> List.filterMap identity
+        |> Set.fromList
+        |> Set.toList
+        |> List.map (getArea model)
+        |> List.filterMap identity

@@ -5,7 +5,7 @@ import Date
 import Dict exposing (Dict)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import List exposing (sortBy)
+import List
 import Message exposing (ItemType(..), Route(..))
 import Model exposing (Criteria, EntityForm, FormState(..), ItemPageModel, Model)
 import Set
@@ -87,14 +87,14 @@ tableValues type_ id model =
     Maybe.withDefault [] <|
         case type_ of
             AreaItem ->
-                getArea id model
+                getArea model id
                     |> Maybe.map
                         (\area ->
                             [ ( "name", area.name ), ( "country", area.country ) ]
                         )
 
             SectorItem ->
-                getSector id model
+                getSector model id
                     |> Maybe.map
                         (\sector ->
                             [ ( "name", sector.name )
@@ -102,7 +102,7 @@ tableValues type_ id model =
                               , sector.areaId
                                     |> Maybe.andThen
                                         (\x ->
-                                            EntityUtilities.getArea x model
+                                            EntityUtilities.getArea model x
                                         )
                                     |> Maybe.map .name
                                     |> Maybe.withDefault ""
@@ -111,7 +111,7 @@ tableValues type_ id model =
                         )
 
             ClimbingRouteItem ->
-                getClimbingRoute id model
+                getClimbingRoute model id
                     |> Maybe.map
                         (\climbingRoute ->
                             [ ( "#", String.fromInt <| Set.size <| Maybe.withDefault Set.empty climbingRoute.ascentIds )
@@ -122,7 +122,7 @@ tableValues type_ id model =
                               , climbingRoute.sectorId
                                     |> Maybe.andThen
                                         (\x ->
-                                            EntityUtilities.getSector x model
+                                            EntityUtilities.getSector model x
                                         )
                                     |> Maybe.map .name
                                     |> Maybe.withDefault ""
