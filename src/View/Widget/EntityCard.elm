@@ -1,7 +1,7 @@
 module View.Widget.EntityCard exposing (..)
 
 import Data
-import Html.Styled exposing (Html, a, button, div, footer, header, img, p, text)
+import Html.Styled exposing (Html, a, button, div, footer, header, img, p, table, text, tr)
 import Html.Styled.Attributes exposing (css, href, type_)
 import Html.Styled.Events exposing (onClick)
 import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..))
@@ -68,42 +68,46 @@ view type_ model =
 
 viewCardTitle : ItemType -> Int -> Model -> Html Msg
 viewCardTitle type_ id model =
-    text <|
-        Maybe.withDefault "" <|
-            case type_ of
-                AreaItem ->
-                    EntityUtilities.getArea id model |> Maybe.map .name
+    Maybe.withDefault (text "") <|
+        case type_ of
+            AreaItem ->
+                EntityUtilities.getArea model id |> Maybe.map (.name >> text)
 
-                SectorItem ->
-                    EntityUtilities.getSector id model |> Maybe.map .name
+            SectorItem ->
+                EntityUtilities.getSector model id |> Maybe.map (.name >> text)
 
-                ClimbingRouteItem ->
-                    EntityUtilities.getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ])
+            ClimbingRouteItem ->
+                EntityUtilities.getClimbingRoute model id |> Maybe.map ((\c -> Utilities.stringFromList [ c.name, " [", c.grade, "]" ]) >> text)
 
-                AscentItem ->
-                    let
-                        dateOrEmpty ascent =
-                            Maybe.withDefault "" ascent.date
-                    in
-                    EntityUtilities.getAscent id model |> Maybe.map (\a -> Utilities.stringFromList [ dateOrEmpty a, " [", Data.ascentKindToString a.kind, "]" ])
+            AscentItem ->
+                let
+                    dateOrEmpty ascent =
+                        Utilities.maybeDateToString ascent.date
+                in
+                EntityUtilities.getAscent id model |> Maybe.map ((\a -> Utilities.stringFromList [ dateOrEmpty a, " [", Data.ascentKindToString a.kind, "]" ]) >> text)
+
+            TripItem ->
+                EntityUtilities.getTrip id model |> Maybe.map tripTitle
 
 
 viewCardDescription : ItemType -> Int -> Model -> Html Msg
 viewCardDescription type_ id model =
-    text <|
-        Maybe.withDefault "" <|
-            case type_ of
-                AreaItem ->
-                    EntityUtilities.getArea id model |> Maybe.map .country
+    Maybe.withDefault (text "") <|
+        case type_ of
+            AreaItem ->
+                EntityUtilities.getArea model id |> Maybe.map (.country >> text)
 
-                SectorItem ->
-                    Nothing
+            SectorItem ->
+                Nothing
 
-                ClimbingRouteItem ->
-                    EntityUtilities.getClimbingRoute id model |> Maybe.andThen .comment
+            ClimbingRouteItem ->
+                EntityUtilities.getClimbingRoute model id |> Maybe.andThen .comment |> Maybe.map text
 
-                AscentItem ->
-                    EntityUtilities.getAscent id model |> Maybe.andThen .comment
+            AscentItem ->
+                EntityUtilities.getAscent id model |> Maybe.andThen .comment |> Maybe.map text
+
+            TripItem ->
+                EntityUtilities.getTrip id model |> Maybe.map (tripDescription model)
 
 
 viewChildren : ItemType -> Int -> Model -> Html Msg
@@ -144,3 +148,33 @@ viewAddChildLink type_ id _ =
                     [ text "addChild" ]
             )
         |> Maybe.withDefault (text "")
+
+
+
+--| Trips
+
+
+areasFromTrip : Model -> Data.Trip -> Html msg
+areasFromTrip model trip =
+    text <| Utilities.stringFromListWith " - " (EntityUtilities.areasFromTrip model trip |> List.map .name)
+
+
+tripDescription : Model -> Data.Trip -> Html msg
+tripDescription model trip =
+    let
+        renderGrade ( grade, amount ) =
+            tr []
+                [ Html.Styled.td [] [ text grade ]
+                , Html.Styled.td [] [ text <| String.fromInt amount ]
+                ]
+    in
+    div []
+        [ areasFromTrip model trip
+        , table [] <|
+            List.map renderGrade (EntityUtilities.groupedRoutesFromTrip trip model)
+        ]
+
+
+tripTitle : Data.Trip -> Html msg
+tripTitle =
+    EntityUtilities.tripTitle >> text

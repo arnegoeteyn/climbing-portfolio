@@ -1,6 +1,6 @@
 port module Command exposing (..)
 
-import Data exposing (JsonFile, encodedJsonFile)
+import Data exposing (encodedJsonFile)
 import Json.Encode
 import Message exposing (Msg)
 import Model exposing (Model)
@@ -24,7 +24,7 @@ updateWithStorage msg model =
     , Cmd.batch
         [ storeCache
             (encodedJsonFile
-                { climbingRoutes = newModel.climbingRoutes, ascents = newModel.ascents, sectors = newModel.sectors, areas = newModel.areas }
+                { climbingRoutes = newModel.climbingRoutes, ascents = newModel.ascents, sectors = newModel.sectors, areas = newModel.areas, trips = newModel.trips }
             )
         , cmds
         ]

@@ -2,7 +2,7 @@ module Model exposing (..)
 
 import Browser.Navigation exposing (Key)
 import Chart.Item as CI
-import Data exposing (Area, Ascent, ClimbingRoute, Sector)
+import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
 import DatePicker
 import Dict exposing (Dict)
 import Message exposing (ItemType, Route)
@@ -18,10 +18,12 @@ type alias Model =
     , ascents : Dict Int Ascent
     , sectors : Dict Int Sector
     , areas : Dict Int Area
+    , trips : Dict Int Trip
     , homeModel : HomeModel
     , climbingRoutesModel : ItemPageModel
     , sectorsModel : ItemPageModel
     , ascentsModel : ItemPageModel
+    , tripsModel : ItemPageModel
     , areasModel : ItemPageModel
     , datePicker : DatePicker.DatePicker
     }

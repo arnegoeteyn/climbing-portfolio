@@ -1,11 +1,23 @@
+--| Generic (13)
+--| Acessors (114)
+--| Filters (143)
+--| Trip (254)
+
+
 module Utilities.EntityUtilities exposing (..)
 
-import Data exposing (Area, Ascent, ClimbingRoute, Sector)
+import Chart.Attributes exposing (area)
+import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
+import Date
 import Dict
 import Message exposing (ItemType(..))
 import Model exposing (Model)
 import Set exposing (Set)
 import Utilities
+
+
+
+--| Generic
 
 
 getChildType : ItemType -> Maybe ItemType
@@ -23,21 +35,27 @@ getChildType type_ =
         AscentItem ->
             Nothing
 
+        TripItem ->
+            Nothing
+
 
 getChildren : ItemType -> Int -> Model -> Set Int
 getChildren type_ id model =
     Maybe.withDefault Set.empty <|
         case type_ of
             AreaItem ->
-                getArea id model |> Maybe.andThen .sectorIds
+                getArea model id |> Maybe.andThen .sectorIds
 
             SectorItem ->
-                getSector id model |> Maybe.andThen .routeIds
+                getSector model id |> Maybe.andThen .routeIds
 
             ClimbingRouteItem ->
-                getClimbingRoute id model |> Maybe.andThen .ascentIds
+                getClimbingRoute model id |> Maybe.andThen .ascentIds
 
             AscentItem ->
+                Nothing
+
+            TripItem ->
                 Nothing
 
 
@@ -56,6 +74,9 @@ getParentType type_ =
         AscentItem ->
             Just ClimbingRouteItem
 
+        TripItem ->
+            Nothing
+
 
 getParent : ItemType -> Int -> Model -> Maybe Int
 getParent type_ id model =
@@ -64,27 +85,54 @@ getParent type_ id model =
             Nothing
 
         SectorItem ->
-            getSector id model |> Maybe.andThen .areaId
+            getSector model id |> Maybe.andThen .areaId
 
         ClimbingRouteItem ->
-            getClimbingRoute id model |> Maybe.andThen .sectorId
+            getClimbingRoute model id |> Maybe.andThen .sectorId
 
         AscentItem ->
             getAscent id model |> Maybe.andThen .routeId
 
+        TripItem ->
+            Nothing
 
-getArea : Int -> Model -> Maybe Area
-getArea id model =
+
+sortEntityBy : ItemType -> Int -> Model -> String
+sortEntityBy type_ id model =
+    Maybe.withDefault "" <|
+        case type_ of
+            AreaItem ->
+                getArea model id |> Maybe.map .name
+
+            SectorItem ->
+                getSector model id |> Maybe.map .name
+
+            ClimbingRouteItem ->
+                getClimbingRoute model id |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
+
+            AscentItem ->
+                getAscent id model |> Maybe.andThen (\ascent -> Maybe.map Date.toIsoString ascent.date)
+
+            TripItem ->
+                getTrip id model |> Maybe.map (.from >> Date.toIsoString)
+
+
+
+--| Acessors
+
+
+getArea : Model -> Int -> Maybe Area
+getArea model id =
     Dict.get id model.areas
 
 
-getSector : Int -> Model -> Maybe Sector
-getSector id model =
+getSector : Model -> Int -> Maybe Sector
+getSector model id =
     Dict.get id model.sectors
 
 
-getClimbingRoute : Int -> Model -> Maybe ClimbingRoute
-getClimbingRoute id model =
+getClimbingRoute : Model -> Int -> Maybe ClimbingRoute
+getClimbingRoute model id =
     Dict.get id model.climbingRoutes
 
 
@@ -93,24 +141,13 @@ getAscent id model =
     Dict.get id model.ascents
 
 
-sortEntityBy : ItemType -> Int -> Model -> String
-sortEntityBy type_ id model =
-    Maybe.withDefault "" <|
-        case type_ of
-            AreaItem ->
-                getArea id model |> Maybe.map .name
-
-            SectorItem ->
-                getSector id model |> Maybe.map .name
-
-            ClimbingRouteItem ->
-                getClimbingRoute id model |> Maybe.map (\c -> Utilities.stringFromList [ c.grade, "!", c.name ])
-
-            AscentItem ->
-                getAscent id model |> Maybe.andThen .date
+getTrip : Int -> Model -> Maybe Trip
+getTrip id model =
+    Dict.get id model.trips
 
 
 
+--| Filters
 -- Elm does not allow custom comparable items so these can't be made a type
 -- Elm also doesn't allow constants in branches so it's pretty messy
 
@@ -121,7 +158,7 @@ matchesFilter type_ id key value model =
         AreaItem ->
             let
                 maybeArea =
-                    getArea id model
+                    getArea model id
             in
             case maybeArea of
                 Nothing ->
@@ -142,7 +179,7 @@ matchesFilter type_ id key value model =
                         )
 
         SectorItem ->
-            case getSector id model of
+            case getSector model id of
                 Nothing ->
                     True
 
@@ -155,7 +192,7 @@ matchesFilter type_ id key value model =
 
                                 "area" ->
                                     sector.areaId
-                                        |> Maybe.andThen (\areaId -> getArea areaId model)
+                                        |> Maybe.andThen (\areaId -> getArea model areaId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
@@ -164,7 +201,7 @@ matchesFilter type_ id key value model =
                         )
 
         ClimbingRouteItem ->
-            case getClimbingRoute id model of
+            case getClimbingRoute model id of
                 Nothing ->
                     True
 
@@ -180,7 +217,7 @@ matchesFilter type_ id key value model =
 
                                 "sector" ->
                                     climbingRoute.sectorId
-                                        |> Maybe.andThen (\sectorId -> getSector sectorId model)
+                                        |> Maybe.andThen (\sectorId -> getSector model sectorId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
@@ -201,17 +238,94 @@ matchesFilter type_ id key value model =
                         (String.toLower <|
                             case key of
                                 "date" ->
-                                    ascent.date |> Maybe.withDefault ""
+                                    ascent.date |> Maybe.map Date.toIsoString |> Maybe.withDefault ""
 
                                 "kind" ->
                                     Data.ascentKindToString ascent.kind
 
                                 "route" ->
                                     ascent.routeId
-                                        |> Maybe.andThen (\routeId -> getClimbingRoute routeId model)
+                                        |> Maybe.andThen (\routeId -> getClimbingRoute model routeId)
                                         |> Maybe.map .name
                                         |> Maybe.withDefault ""
 
                                 _ ->
                                     value
                         )
+
+        TripItem ->
+            True
+
+
+
+--| Sector
+
+
+areaFromSector : Model -> Sector -> Maybe Area
+areaFromSector model sector =
+    sector.areaId |> Maybe.andThen (getArea model)
+
+
+
+--| ClimbingRoute
+
+
+sectorFromClimbingRoute : Model -> ClimbingRoute -> Maybe Sector
+sectorFromClimbingRoute model route =
+    route.sectorId |> Maybe.andThen (getSector model)
+
+
+
+--| Ascent
+
+
+climbingRouteFromAscent : Model -> Ascent -> Maybe ClimbingRoute
+climbingRouteFromAscent model ascent =
+    ascent.routeId |> Maybe.andThen (getClimbingRoute model)
+
+
+
+--| Trip
+
+
+tripTitle : Trip -> String
+tripTitle trip =
+    Utilities.stringFromList [ Date.toIsoString trip.from, " - ", Date.toIsoString trip.to ]
+
+
+groupedRoutesFromTrip : Trip -> Model -> List ( String, Int )
+groupedRoutesFromTrip trip model =
+    ascentsFromTrip trip model
+        |> List.map (\item -> getClimbingRoute model (Maybe.withDefault -1 item.routeId))
+        |> List.filterMap identity
+        |> List.foldl
+            (\value acc ->
+                Dict.insert value.grade
+                    (Dict.get value.grade acc |> Maybe.withDefault 0 |> (+) 1)
+                    acc
+            )
+            Dict.empty
+        |> Dict.toList
+        |> Utilities.sortDescending
+
+
+ascentsFromTrip : Trip -> Model -> List Ascent
+ascentsFromTrip trip model =
+    Dict.filter
+        (\_ ascent -> Maybe.map (Date.isBetween trip.from trip.to) ascent.date |> Maybe.withDefault False)
+        model.ascents
+        |> Dict.toList
+        |> List.map Tuple.second
+
+
+areasFromTrip : Model -> Trip -> List Area
+areasFromTrip model trip =
+    ascentsFromTrip trip model
+        |> List.map (climbingRouteFromAscent model)
+        |> List.map (Maybe.andThen (sectorFromClimbingRoute model))
+        |> List.map (Maybe.andThen (\sector -> getParent SectorItem sector.id model))
+        |> List.filterMap identity
+        |> Set.fromList
+        |> Set.toList
+        |> List.map (getArea model)
+        |> List.filterMap identity

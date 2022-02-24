@@ -2,7 +2,7 @@ module Update exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
-import Data exposing (AscentKind(..), ClimbingRouteKind(..), encodedJsonFile, jsonFileDecoder)
+import Data exposing (AscentKind(..), ClimbingRouteKind(..), Trip, encodedJsonFile, jsonFileDecoder)
 import Date
 import DatePicker
 import Dict exposing (Dict)
@@ -20,7 +20,7 @@ import Update.Home
 import Update.ItemPage
 import Url
 import Utilities.EntityFormUtilities as ItemFormUtilities
-import Utilities.EntityPageUtilities as ItemPageUtilities exposing (getItemFromRoute, setItemPageModel)
+import Utilities.EntityPageUtilities as ItemPageUtilities exposing (getItemFromRoute)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -82,6 +82,7 @@ update msg model =
                         , ascents = file.ascents
                         , sectors = file.sectors
                         , areas = file.areas
+                        , trips = file.trips
                       }
                     , Cmd.none
                     )
@@ -92,7 +93,7 @@ update msg model =
         ExportRequested ->
             let
                 result =
-                    encode 4 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors, areas = model.areas }
+                    encode 5 <| encodedJsonFile { climbingRoutes = model.climbingRoutes, ascents = model.ascents, sectors = model.sectors, areas = model.areas, trips = model.trips }
             in
             ( model, File.Download.string "result.json" "application/json" result )
 
@@ -107,25 +108,35 @@ update msg model =
                 l =
                     Set.fromList [ id ]
 
-                updateData =
+                ( updateData, tripData ) =
                     case item of
                         AreaItem ->
-                            deleteArea model l
+                            ( deleteArea model l, model.trips )
 
                         SectorItem ->
-                            deleteSector model l
+                            ( deleteSector model l, model.trips )
 
                         ClimbingRouteItem ->
-                            deleteClimbingRoute model l
+                            ( deleteClimbingRoute model l, model.trips )
 
                         AscentItem ->
-                            deleteAscent model l
+                            ( deleteAscent model l, model.trips )
+
+                        TripItem ->
+                            ( { areas = model.areas
+                              , sectors = model.sectors
+                              , climbingRoutes = model.climbingRoutes
+                              , ascents = model.ascents
+                              }
+                            , deleteTrip model l
+                            )
             in
             ( { model
                 | areas = updateData.areas
                 , sectors = updateData.sectors
                 , climbingRoutes = updateData.climbingRoutes
                 , ascents = updateData.ascents
+                , trips = tripData
               }
             , Cmd.none
             )
@@ -170,11 +181,18 @@ update msg model =
                                     ItemFormUtilities.areaFromForm model form
                             in
                             { model | areas = Dict.insert newArea.id newArea model.areas }
+
+                        TripItem ->
+                            let
+                                maybeNewTrip =
+                                    ItemFormUtilities.tripFromForm model form
+                            in
+                            Maybe.map (\newTrip -> { model | trips = Dict.insert newTrip.id newTrip model.trips }) maybeNewTrip
+                                |> Maybe.withDefault model
             in
             ( newModel, Cmd.none )
 
         ToDatePicker item criterium subMsg ->
-            -- todo rewrite this to be able to work with multiple datepickers in the application
             let
                 ( newDatePicker, event ) =
                     DatePicker.update DatePicker.defaultSettings subMsg model.datePicker
@@ -260,3 +278,8 @@ deleteAscent model ids =
             Dict.filter (\_ value -> not <| Set.member value.id ids) model.ascents
     in
     { areas = model.areas, sectors = model.sectors, climbingRoutes = model.climbingRoutes, ascents = newAscents }
+
+
+deleteTrip : Model -> Set.Set Int -> Dict Int Trip
+deleteTrip model ids =
+    Dict.filter (\_ value -> not <| Set.member value.id ids) model.trips
