@@ -10,23 +10,28 @@ import Json.Encode
 import List exposing (sortBy)
 
 
-filterList : List ( a, Bool, Maybe a ) -> List a
-filterList list =
+filterList : List ( a, Bool ) -> List a
+filterList =
+    filterAndReplaceList << List.map (\( x, y ) -> ( x, y, Nothing ))
+
+
+filterAndReplaceList : List ( a, Bool, Maybe a ) -> List a
+filterAndReplaceList list =
     case list of
         [] ->
             []
 
         ( style, b, maybeAlternative ) :: xs ->
             if b then
-                style :: filterList xs
+                style :: filterAndReplaceList xs
 
             else
                 case maybeAlternative of
                     Nothing ->
-                        filterList xs
+                        filterAndReplaceList xs
 
                     Just alternative ->
-                        alternative :: filterList xs
+                        alternative :: filterAndReplaceList xs
 
 
 encodeNullable : (value -> Json.Encode.Value) -> Maybe value -> Json.Encode.Value

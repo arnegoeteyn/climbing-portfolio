@@ -2,11 +2,12 @@ module View.Page.EntityPage exposing (..)
 
 import Dict exposing (Dict(..))
 import Html.Styled exposing (Html, button, div, h2, table, td, text, tr)
-import Html.Styled.Attributes exposing (value)
+import Html.Styled.Attributes as A exposing (value)
 import Html.Styled.Events exposing (onClick)
 import Message exposing (CriteriumUpdate(..), ItemPageMsg(..), ItemType, Msg(..))
 import Model exposing (FormState(..), Model)
 import Svg.Styled.Attributes exposing (css)
+import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
 import Utilities exposing (viewInput)
 import Utilities.EntityFormUtilities exposing (getFormFromItem)
@@ -19,12 +20,25 @@ import View.Widget.EntityForm as ItemForm
 
 viewEntityPage : ItemType -> Model -> Html Msg
 viewEntityPage type_ model =
+    let
+        sidePaneCss =
+            [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ]
+
+        hasASelection =
+            EntityPageUtilities.hasASelection type_ model
+    in
     div []
         [ viewAddItemButton type_ model
         , div
-            [ css [ Tw.flex, Tw.flex_row, Tw.h_screen ] ]
-            [ div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ viewItemList type_ model ]
-            , div [ css [ Tw.h_full, Tw.flex, Tw.max_h_screen, Tw.overflow_y_auto, Tw.flex_col, Tw.flex_grow ] ] [ sidePanelView type_ model ]
+            [ css [ B.lg [ Tw.flex, Tw.flex_row, Tw.h_screen ], Tw.block ] ]
+            [ div
+                [ css
+                    (B.lg (sidePaneCss ++ [ Tw.w_4over6 ])
+                        :: Utilities.filterList [ ( Tw.hidden, not hasASelection ) ]
+                    )
+                ]
+                [ viewItemList type_ model ]
+            , div [ css (sidePaneCss ++ [ B.lg [ Tw.w_2over6 ] ]) ] [ sidePanelView type_ model ]
             ]
         ]
 
@@ -104,8 +118,8 @@ viewItemList type_ model =
                 List.map
                     (\id ->
                         tr
-                            ((onClick <| ItemPage type_ (SelectItem id))
-                                :: Utilities.filterList [ ( Table.selectedRowProperties, EntityPageUtilities.selectedItemId type_ model == Just id, Nothing ) ]
+                            ((onClick <| ItemPage type_ (SelectItem <| Just id))
+                                :: Utilities.filterAndReplaceList [ ( Table.selectedRowProperties, EntityPageUtilities.selectedItemId type_ model == Just id, Nothing ) ]
                             )
                         <|
                             List.map

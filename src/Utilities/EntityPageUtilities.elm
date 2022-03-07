@@ -319,3 +319,12 @@ updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
             (\x -> { x | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }) model.form
     in
     { model | form = form, selectedItemId = maybeSelectedId }
+
+
+
+--| Model accessors
+
+
+hasASelection : ItemType -> Model -> Bool
+hasASelection type_ model =
+    selectedItemId type_ model == Nothing
