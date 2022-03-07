@@ -8,7 +8,7 @@ import Message exposing (ItemType(..), Msg(..), Route(..))
 import Model exposing (Model)
 import Tailwind.Breakpoints as B
 import Tailwind.Utilities as Tw
-import Utilities exposing (filterList)
+import Utilities exposing (filterAndReplaceList)
 import View.Page.EntityPage as EntityPage
 import View.Page.Home exposing (viewHome)
 
@@ -77,7 +77,7 @@ viewHeader model =
                 [ href url
                 , Html.Styled.Attributes.css <|
                     [ Tw.block, Tw.mt_4, Tw.mr_4, Tw.text_purple_200, B.lg [ Tw.inline_block, Tw.mt_0 ] ]
-                        ++ filterList [ ( Tw.underline, isActive route, Just Tw.no_underline ) ]
+                        ++ filterAndReplaceList [ ( Tw.underline, isActive route, Just Tw.no_underline ) ]
                 ]
                 [ text caption ]
     in

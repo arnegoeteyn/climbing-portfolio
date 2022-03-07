@@ -56,7 +56,7 @@ type ItemPageMsg
     = CreateNewItem
     | CloseForm
     | UpdateItem Int
-    | SelectItem Int
+    | SelectItem (Maybe Int)
     | FormUpdateMessage CriteriumUpdate
     | FilterUpdateMessage String String
 

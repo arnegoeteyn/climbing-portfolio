@@ -29,7 +29,7 @@ update msg item model =
                     ( { itemPageModel | form = (\f -> { f | formState = Model.Hidden }) itemPageModel.form }, Cmd.none )
 
                 SelectItem id ->
-                    ( { itemPageModel | selectedItemId = Just id, form = EntityFormUtilities.closeForm itemPageModel.form }, Cmd.none )
+                    ( { itemPageModel | selectedItemId = id, form = EntityFormUtilities.closeForm itemPageModel.form }, Cmd.none )
 
                 FilterUpdateMessage key value ->
                     ( { itemPageModel | filterValues = Dict.insert key value itemPageModel.filterValues }, Cmd.none )

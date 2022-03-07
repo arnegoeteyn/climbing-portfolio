@@ -60,7 +60,8 @@ view type_ model =
                     , viewAddChildLink type_ itemId model
                     ]
                 , footer [ cardFooterTWProperties ]
-                    [ button [ Buttons.negativeButtonTWProperties, onClick <| DeleteItem type_ itemId ] [ text "delete" ]
+                    [ button [ Buttons.neutralButtonTWProperties, onClick <| (ItemPage type_ <| SelectItem Nothing) ] [ text "close" ]
+                    , button [ Buttons.negativeButtonTWProperties, onClick <| DeleteItem type_ itemId ] [ text "delete" ]
                     , button [ Buttons.positiveButtonTWProperties, onClick (ItemPage type_ <| UpdateItem itemId) ] [ text "edit" ]
                     ]
                 ]
@@ -129,7 +130,7 @@ viewLink : ItemType -> Int -> Model -> Html Msg
 viewLink type_ id model =
     div []
         [ a
-            [ onClick <| ItemPage type_ (SelectItem id)
+            [ onClick <| ItemPage type_ (SelectItem <| Just id)
             , href <| ItemPageUtilities.urlToItem type_ id
             ]
             [ viewCardTitle type_ id model ]

@@ -1,9 +1,3 @@
---| Generic (13)
---| Acessors (114)
---| Filters (143)
---| Trip (254)
-
-
 module Utilities.EntityUtilities exposing (..)
 
 import Chart.Attributes exposing (area)
