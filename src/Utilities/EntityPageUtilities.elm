@@ -312,13 +312,67 @@ setItemPageModel itemPageModel model =
             { model | tripsModel = itemPageModel }
 
 
-updateItemPageModelWithParams : ItemPageModel -> ( Maybe Int, Criteria, FormState ) -> ItemPageModel
-updateItemPageModelWithParams model ( maybeSelectedId, criteria, formState ) =
+parentFilterValueKey : ItemPageModel -> Maybe String
+parentFilterValueKey itemPageModel =
+    case itemPageModel.itemType of
+        ClimbingRouteItem ->
+            Just "sector"
+
+        SectorItem ->
+            Just "area"
+
+        AscentItem ->
+            Just "route"
+
+        AreaItem ->
+            Nothing
+
+        TripItem ->
+            Nothing
+
+
+getTextualParent : ItemPageModel -> Model -> Int -> Maybe String
+getTextualParent itemPageModel model id =
+    case itemPageModel.itemType of
+        ClimbingRouteItem ->
+            getSector model id
+                |> Maybe.map .name
+
+        SectorItem ->
+            getArea model id
+                |> Maybe.map .name
+
+        AscentItem ->
+            getClimbingRoute model id
+                |> Maybe.map .name
+
+        AreaItem ->
+            Nothing
+
+        TripItem ->
+            Nothing
+
+
+updateItemPageModelWithParams : ItemPageModel -> Model -> ( Maybe Int, Criteria, FormState ) -> ItemPageModel
+updateItemPageModelWithParams itemPageModel model ( maybeSelectedId, criteria, formState ) =
     let
+        parentId =
+            Dict.get "_parentId" criteria |> Maybe.map .value
+
+        parentName =
+            Maybe.andThen String.toInt parentId
+                |> Maybe.andThen
+                    (getTextualParent itemPageModel
+                        model
+                    )
+
+        filterValues =
+            Maybe.map2 (\p n -> Dict.insert n p Dict.empty) parentName (parentFilterValueKey itemPageModel)
+
         form =
-            (\x -> { x | criteria = criteria, formState = formState, parentId = Dict.get "_parentId" criteria |> Maybe.map .value }) model.form
+            (\x -> { x | criteria = criteria, formState = formState, parentId = parentId }) itemPageModel.form
     in
-    { model | form = form, selectedItemId = maybeSelectedId }
+    { itemPageModel | form = form, selectedItemId = maybeSelectedId, filterValues = Maybe.withDefault Dict.empty filterValues }
 
 
 

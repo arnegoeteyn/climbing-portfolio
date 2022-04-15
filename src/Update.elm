@@ -46,7 +46,7 @@ update msg model =
                     { model | route = parseUrl url, url = url }
 
                 updatedItemPageModel =
-                    Maybe.map2 ItemPageUtilities.updateItemPageModelWithParams maybeItemPageModel maybeParams
+                    Maybe.map2 (\a b -> ItemPageUtilities.updateItemPageModelWithParams a updatedModel b) maybeItemPageModel maybeParams
             in
             ( Maybe.map
                 (\itemPageModel -> ItemPageUtilities.setItemPageModel itemPageModel updatedModel)
@@ -67,7 +67,7 @@ update msg model =
             ( model, File.Select.file [ "application/json" ] JsonSelected )
 
         JsonSelected file ->
-            ( model, Task.perform JsonLoaded (File.toString file) )
+            ( { model | appState = Model.NotReady }, Task.perform JsonLoaded (File.toString file) )
 
         JsonLoaded content ->
             let
@@ -88,7 +88,7 @@ update msg model =
                     )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( { model | appState = Ready }, Cmd.none )
 
         ExportRequested ->
             let
