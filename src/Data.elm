@@ -114,7 +114,7 @@ type alias ClimbingRoute =
     , name : String
     , grade : String
     , comment : Maybe String
-    , ascentIds : Maybe (Set Int)
+    , ascentIds : Set Int
     , kind : ClimbingRouteKind
     }
 
@@ -127,7 +127,7 @@ climbingRouteDecoder =
         |> required "name" string
         |> required "grade" string
         |> optional "comment" (Json.Decode.map Just string) Nothing
-        |> optional "ascentIds" (Json.Decode.map Just (set int)) Nothing
+        |> optional "ascentIds" (set int) Set.empty
         |> required "kind" climbingRouteKindDecoder
 
 
@@ -139,7 +139,7 @@ encodeClimbingRoute route =
         , ( "name", Json.Encode.string route.name )
         , ( "grade", Json.Encode.string route.grade )
         , ( "comment", encodeNullable Json.Encode.string route.comment )
-        , ( "ascentIds", encodeNullable (Json.Encode.set Json.Encode.int) route.ascentIds )
+        , ( "ascentIds", Json.Encode.set Json.Encode.int route.ascentIds )
         , ( "kind", encodeClimbingRouteKind route.kind )
         ]
 

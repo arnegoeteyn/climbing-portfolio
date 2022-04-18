@@ -258,7 +258,7 @@ climbingRouteFromForm model form =
             getCriteriumValueFromForm "comment" form
 
         maybeAscentIds =
-            Dict.get newRouteId model.climbingRoutes |> Maybe.andThen .ascentIds
+            Dict.get newRouteId model.climbingRoutes |> Maybe.map .ascentIds |> Maybe.withDefault Set.empty
     in
     ( { id = newRouteId
       , sectorId = Maybe.map .id maybeSector
@@ -318,8 +318,8 @@ ascentFromForm model form =
             modifiedParentCollection AscentItem
                 newAscentId
                 maybeRoute
-                .ascentIds
-                (\newIds route -> { route | ascentIds = newIds })
+                (\route -> Just route.ascentIds)
+                (\newIds route -> { route | ascentIds = Maybe.withDefault Set.empty newIds })
                 model
                 model.climbingRoutes
 

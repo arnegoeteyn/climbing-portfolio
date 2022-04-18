@@ -5,7 +5,9 @@ import Chart.Item as CI
 import Data exposing (Area, Ascent, ClimbingRoute, Sector, Trip)
 import DatePicker
 import Dict exposing (Dict)
-import Message exposing (ItemType, Route)
+import Message exposing (ItemType, Msg, Route)
+import Select
+import Set exposing (Set)
 import Url exposing (Url)
 
 
@@ -26,6 +28,7 @@ type alias Model =
     , tripsModel : ItemPageModel
     , areasModel : ItemPageModel
     , datePicker : DatePicker.DatePicker
+    , overviewModel : OverviewModel
     }
 
 
@@ -44,6 +47,14 @@ type alias ItemPageModel =
     , selectedItemId : Maybe Int
     , filterValues : Dict String String
     , sortOnColumn : Maybe Int
+    }
+
+
+type alias OverviewModel =
+    { routeFilter : String
+    , selected : List Sector
+    , selectState : Select.State
+    , selectedClimbingRoute : Maybe ClimbingRoute
     }
 
 

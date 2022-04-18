@@ -7,6 +7,8 @@ import Dict
 import Json.Decode exposing (decodeString)
 import Message exposing (ItemType(..), Msg(..), Route(..))
 import Model exposing (EntityForm, FormState(..), ItemPageModel, Model)
+import Select
+import Set
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
@@ -67,6 +69,12 @@ init storageCache url key =
       , areasModel = areasModel
       , tripsModel = tripsModel
       , datePicker = datePicker
+      , overviewModel =
+            { routeFilter = ""
+            , selected = []
+            , selectState = Select.init "sectors"
+            , selectedClimbingRoute = Nothing
+            }
       }
     , Cmd.batch [ Cmd.map (ToDatePicker AscentItem "") datePickerCmd, routesCmd, sectorsCmd, areasCmd, ascentsCmd, tripsCmd ]
     )
@@ -159,6 +167,7 @@ routeParser : Parser (Route -> a) a
 routeParser =
     Parser.oneOf
         [ Parser.map HomeRoute Parser.top
+        , Parser.map OverviewRoute (Parser.s "overview")
         , Parser.map RoutesRoute (Parser.s "routes" <?> Query.int "selected" <?> Query.string "criteria")
         , Parser.map AscentsRoute (Parser.s "ascents" <?> Query.int "selected" <?> Query.string "criteria")
         , Parser.map SectorsRoute (Parser.s "sectors" <?> Query.int "selected" <?> Query.string "criteria")

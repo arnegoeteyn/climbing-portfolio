@@ -12,12 +12,13 @@ import File.Select
 import Init exposing (parseUrl)
 import Json.Decode exposing (decodeString)
 import Json.Encode exposing (encode)
-import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..), Route(..))
+import Message exposing (ItemPageMsg(..), ItemType(..), Msg(..), OverviewMsg, Route(..))
 import Model exposing (AppState(..), FormState(..), Model)
 import Set
 import Task
 import Update.Home
 import Update.ItemPage
+import Update.Overview
 import Url
 import Utilities.EntityFormUtilities as ItemFormUtilities
 import Utilities.EntityPageUtilities as ItemPageUtilities exposing (getItemFromRoute)
@@ -102,6 +103,9 @@ update msg model =
 
         Home homeMsg ->
             Update.Home.update homeMsg model
+
+        Overview overviewMsg ->
+            Update.Overview.update overviewMsg model
 
         DeleteItem item id ->
             let
@@ -260,7 +264,7 @@ deleteClimbingRoute model ids =
 
         ascentIds =
             Set.foldl
-                (\id curr -> Set.union curr (Dict.get id model.climbingRoutes |> Maybe.andThen .ascentIds |> Maybe.withDefault Set.empty))
+                (\id curr -> Set.union curr (Dict.get id model.climbingRoutes |> Maybe.map .ascentIds |> Maybe.withDefault Set.empty))
                 Set.empty
                 ids
 

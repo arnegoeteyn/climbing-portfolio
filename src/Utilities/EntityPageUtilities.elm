@@ -114,7 +114,7 @@ tableValues type_ id model =
                 getClimbingRoute model id
                     |> Maybe.map
                         (\climbingRoute ->
-                            [ ( "#", String.fromInt <| Set.size <| Maybe.withDefault Set.empty climbingRoute.ascentIds )
+                            [ ( "#", String.fromInt <| Set.size <| climbingRoute.ascentIds )
                             , ( "name", climbingRoute.name )
                             , ( "grade", climbingRoute.grade )
                             , ( "kind", climbingRouteKindToString climbingRoute.kind )

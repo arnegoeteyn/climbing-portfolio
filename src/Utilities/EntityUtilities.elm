@@ -44,7 +44,7 @@ getChildren type_ id model =
                 getSector model id |> Maybe.andThen .routeIds
 
             ClimbingRouteItem ->
-                getClimbingRoute model id |> Maybe.andThen .ascentIds
+                getClimbingRoute model id |> Maybe.map .ascentIds
 
             AscentItem ->
                 Nothing

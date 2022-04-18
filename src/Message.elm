@@ -2,13 +2,16 @@ module Message exposing (..)
 
 import Browser
 import Chart.Item as CI
+import Data exposing (Area, ClimbingRoute, Sector)
 import DatePicker
 import File exposing (File)
+import Select
 import Url exposing (Url)
 
 
 type Route
     = HomeRoute
+    | OverviewRoute
     | AscentsRoute (Maybe Int) (Maybe String)
     | RoutesRoute (Maybe Int) (Maybe String) -- selected, criteria
     | SectorsRoute (Maybe Int) (Maybe String)
@@ -46,10 +49,21 @@ type Msg
       -- Pages
     | Home HomeMsg
     | ItemPage ItemType ItemPageMsg
+    | Overview OverviewMsg
 
 
 type HomeMsg
     = OnHover (List (CI.One { x : Float, y : Float, z : String } CI.Bar))
+
+
+type OverviewMsg
+    = RouteFilter String
+      -- selection
+    | SelectMsg (Select.Msg Sector)
+    | OnSelect (Maybe Sector)
+    | OnRemove Sector
+      --
+    | OnClimbingRouteClicked (Maybe ClimbingRoute)
 
 
 type ItemPageMsg

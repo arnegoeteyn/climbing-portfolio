@@ -11,6 +11,7 @@ import Tailwind.Utilities as Tw
 import Utilities exposing (filterAndReplaceList)
 import View.Page.EntityPage as EntityPage
 import View.Page.Home exposing (viewHome)
+import View.Page.OverviewPage as OverviewPage
 
 
 view : Model -> List (Html.Html Msg)
@@ -36,6 +37,7 @@ viewHeader model =
         links =
             div [ Html.Styled.Attributes.css [ Tw.w_full, Tw.block, Tw.flex_grow, B.lg [ Tw.flex, Tw.items_center, Tw.w_auto ] ] ]
                 [ navLink HomeRoute { url = "/", caption = "Home" }
+                , navLink OverviewRoute { url = "/overview", caption = "Overview" }
                 , navLink (AscentsRoute Nothing Nothing) { url = "/ascents", caption = "Ascents" }
                 , navLink (RoutesRoute Nothing Nothing) { url = "/routes", caption = "Routes" }
                 , navLink (SectorsRoute Nothing Nothing) { url = "/sectors", caption = "Sectors" }
@@ -95,6 +97,9 @@ viewPage model =
         [ case model.route of
             HomeRoute ->
                 viewHome model
+
+            OverviewRoute ->
+                OverviewPage.view model
 
             RoutesRoute _ _ ->
                 EntityPage.viewEntityPage ClimbingRouteItem model

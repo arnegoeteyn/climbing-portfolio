@@ -111,3 +111,21 @@ sortByDescending func =
 sortDescending : List comparable -> List comparable
 sortDescending =
     sortByDescending identity
+
+
+listToMaybe : List a -> Maybe (List a)
+listToMaybe l =
+    if List.isEmpty l then
+        Nothing
+
+    else
+        Just l
+
+
+addIfNotPresent : a -> List a -> List a
+addIfNotPresent item list =
+    if List.member item list then
+        list
+
+    else
+        item :: list

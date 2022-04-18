@@ -20,6 +20,7 @@
             "justinmimbs/date": "3.2.1",
             "matheus23/elm-default-tailwind-modules": "2.0.2",
             "rtfeldman/elm-css": "17.0.1",
+            "sporto/elm-select": "6.0.1",
             "terezka/elm-charts": "3.0.0"
         },
         "indirect": {

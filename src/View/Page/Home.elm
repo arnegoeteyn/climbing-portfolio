@@ -30,7 +30,7 @@ routesPerGrade kind model =
         grades =
             model.climbingRoutes
                 |> Dict.filter (\_ value -> value.kind == kind)
-                |> Dict.filter (\_ value -> not << Set.isEmpty << Maybe.withDefault Set.empty <| value.ascentIds)
+                |> Dict.filter (\_ value -> not << Set.isEmpty <| value.ascentIds)
                 |> Dict.map (\_ item -> item.grade)
                 |> Dict.foldl
                     (\_ value acc ->
