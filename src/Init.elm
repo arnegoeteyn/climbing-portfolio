@@ -6,7 +6,7 @@ import DatePicker
 import Dict
 import Json.Decode exposing (decodeString)
 import Message exposing (ItemType(..), Msg(..), Route(..))
-import Model exposing (EntityForm, FormState(..), ItemPageModel, Model)
+import Model exposing (EntityForm, FormState(..), ItemPageModel, Model, OverviewModel)
 import Select
 import Set
 import Url exposing (Url)
@@ -69,15 +69,20 @@ init storageCache url key =
       , areasModel = areasModel
       , tripsModel = tripsModel
       , datePicker = datePicker
-      , overviewModel =
-            { routeFilter = ""
-            , selected = []
-            , selectState = Select.init "sectors"
-            , selectedClimbingRoute = Nothing
-            }
+      , overviewModel = overViewModel
       }
     , Cmd.batch [ Cmd.map (ToDatePicker AscentItem "") datePickerCmd, routesCmd, sectorsCmd, areasCmd, ascentsCmd, tripsCmd ]
     )
+
+
+overViewModel : OverviewModel
+overViewModel =
+    { routeFilter = ""
+    , selected = []
+    , selectState = Select.init "sectors"
+    , selectedClimbingRoute = Nothing
+    , mediaInput = ""
+    }
 
 
 itemPageModel : ItemType -> Route -> ( ItemPageModel, Cmd Msg )

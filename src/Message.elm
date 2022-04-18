@@ -43,6 +43,7 @@ type Msg
     | SaveItemRequested ItemType
     | DeleteItem ItemType Int
     | ToDatePicker ItemType String DatePicker.Msg
+    | AddMediaToRoute ClimbingRoute
       -- router
     | ClickedLink Browser.UrlRequest
     | ChangedUrl Url
@@ -64,6 +65,7 @@ type OverviewMsg
     | OnRemove Sector
       --
     | OnClimbingRouteClicked (Maybe ClimbingRoute)
+    | OnMediaInput String
 
 
 type ItemPageMsg

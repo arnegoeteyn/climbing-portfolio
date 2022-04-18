@@ -10,6 +10,7 @@ import Message exposing (Msg)
 import Model exposing (Model)
 import Select
 import Set
+import Tailwind.Utilities as Tw
 import Utilities
 import Utilities.Entity2Utilities as EntityUtilities
 import View.Components.Div as Div
@@ -20,15 +21,15 @@ view : Model -> Html Msg
 view model =
     H.div []
         [ viewFilters model
-        , H.table
-            [ Table.tableProperties ]
-          <|
-            [ H.tbody [ Table.tableBodyProperties ]
-                (List.concatMap
-                    (\route -> [ viewRouteRow model route, viewRouteDetail model route ])
-                    (sortedAndFilteredRoutes model)
+        , H.div [ A.css [] ] <|
+            List.map
+                (\route ->
+                    H.div [ A.css [ Tw.border, Tw.border_solid, Tw.py_4 ] ]
+                        [ viewRouteRow model route, viewRouteDetail model route ]
                 )
-            ]
+                (sortedAndFilteredRoutes model)
+
+        -- ]
         ]
 
 
@@ -66,8 +67,43 @@ viewFilters model =
 
 viewRouteDetail : Model -> ClimbingRoute -> Html Msg
 viewRouteDetail model route =
+    let
+        hasMedia =
+            (not << List.isEmpty) route.media
+
+        addMediaInput =
+            Utilities.viewInput "text" "media" model.overviewModel.mediaInput (Message.Overview << Message.OnMediaInput)
+
+        addMediaButton =
+            H.button [ E.onClick <| Message.AddMediaToRoute route ] [ H.text "add" ]
+    in
     if isSelected model route then
-        H.tr [] [ viewRouteInfo model route, viewAscentsList model route ]
+        H.div [ A.css [ Tw.grid, Tw.gap_4, Tw.grid_cols_2 ] ]
+            [ H.div [ A.css [ Tw.p_2, Tw.col_auto, Tw.grid, Tw.justify_items_center ] ]
+                [ viewRouteInfo model route
+                , viewAscentsList model route
+                ]
+
+            -- ]
+            , H.div [ A.css [] ]
+                [ H.img
+                    (A.src
+                        "https://www.barcelona-tourist-guide.com/images/ext/attractions/montserrat/L550/montserrat-barcelona-29.jpg"
+                        :: [ A.css [ Tw.col_auto, Tw.mx_auto ] ]
+                    )
+                    []
+                , H.div [ Div.importantProperties ] [ H.text <| Utilities.stringFromList [ String.fromInt <| List.length route.media, " media:" ] ]
+                , if hasMedia then
+                    H.ul [] <| List.map (\m -> H.li [] [ H.a [ A.css [ Tw.break_words ], A.href m, A.target "_blank" ] [ H.text m ] ]) route.media
+
+                  else
+                    H.text ""
+                , H.div []
+                    [ addMediaInput
+                    , addMediaButton
+                    ]
+                ]
+            ]
 
     else
         H.text ""
@@ -75,7 +111,7 @@ viewRouteDetail model route =
 
 viewRouteInfo : Model -> ClimbingRoute -> Html Msg
 viewRouteInfo model climbingRoute =
-    H.div []
+    H.div [ A.css [] ]
         [ H.text <| Maybe.withDefault "" climbingRoute.comment
         ]
 
@@ -86,10 +122,12 @@ viewAscentsList model route =
         ascents =
             EntityUtilities.getAscents model route
     in
-    H.div [] <|
-        List.map
-            (\ascent -> H.div [] [ H.text <| Maybe.withDefault "" <| Maybe.map Date.toIsoString <| ascent.date ])
-            ascents
+    H.div [ A.css [] ]
+        (H.div [ Div.importantProperties ] [ H.text (Utilities.stringFromList [ String.fromInt <| List.length ascents, " ascents:" ]) ]
+            :: List.map
+                (\ascent -> H.div [] [ H.text <| Maybe.withDefault "" <| Maybe.map Date.toIsoString <| ascent.date ])
+                ascents
+        )
 
 
 isSelected : Model -> ClimbingRoute -> Bool
@@ -99,18 +137,19 @@ isSelected model route =
 
 viewRouteRow : Model -> ClimbingRoute -> Html Msg
 viewRouteRow model route =
-    H.tr
-        ((E.onClick <|
+    H.div
+        ([ E.onClick <|
             (Message.Overview << Message.OnClimbingRouteClicked) (Just route)
-         )
-            :: Utilities.filterAndReplaceList
+         , A.css [ Tw.flex ]
+         ]
+            ++ Utilities.filterAndReplaceList
                 [ ( Table.selectedRowProperties, isSelected model route, Nothing )
                 ]
         )
-        [ H.td [] [ H.div [ Div.largeProperties ] [ H.text route.grade ] ]
-        , H.td [] [ viewRouteNameCell model route ]
-        , H.td [] [ H.text (Data.climbingRouteKindToString route.kind) ]
-        , H.td [] [ (H.text << String.fromInt << Set.size) route.ascentIds ]
+        [ H.div [ A.css [ Tw.w_1over6 ] ] [ H.div [ Div.largeProperties ] [ H.text route.grade ] ]
+        , H.div [ A.css [ Tw.w_2over6 ] ] [ viewRouteNameCell model route ]
+        , H.div [ A.css [ Tw.w_2over6 ] ] [ H.text (Data.climbingRouteKindToString route.kind) ]
+        , H.div [ A.css [ Tw.w_1over6 ] ] [ (H.text << String.fromInt << Set.size) route.ascentIds ]
         ]
 
 

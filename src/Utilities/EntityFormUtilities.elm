@@ -267,6 +267,7 @@ climbingRouteFromForm model form =
       , comment = maybeComment
       , ascentIds = maybeAscentIds
       , kind = Maybe.andThen Data.climbingRouteKindFromString maybeKind |> Maybe.withDefault Sport
+      , media = []
       }
     , modifiedSectors
     )

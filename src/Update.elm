@@ -211,6 +211,23 @@ update msg model =
             in
             ( { newModel | datePicker = newDatePicker }, newCmd )
 
+        AddMediaToRoute route ->
+            let
+                media =
+                    model.overviewModel.mediaInput
+
+                newRoute =
+                    if String.isEmpty media then
+                        route
+
+                    else
+                        { route | media = media :: route.media }
+
+                updatedRoutes =
+                    Dict.insert route.id newRoute model.climbingRoutes
+            in
+            ( { model | climbingRoutes = updatedRoutes }, Cmd.none )
+
 
 type alias ModelData =
     { areas : Dict Int Data.Area

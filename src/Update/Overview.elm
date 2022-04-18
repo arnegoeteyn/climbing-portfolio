@@ -47,5 +47,8 @@ update msg model =
 
                 OnClimbingRouteClicked maybeClimbingRoute ->
                     ( { overviewModel | selectedClimbingRoute = maybeClimbingRoute }, Cmd.none )
+
+                OnMediaInput input ->
+                    ( { overviewModel | mediaInput = input }, Cmd.none )
     in
     ( { model | overviewModel = updatedModel }, updatedCmd )

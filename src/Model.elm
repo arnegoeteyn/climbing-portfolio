@@ -55,6 +55,7 @@ type alias OverviewModel =
     , selected : List Sector
     , selectState : Select.State
     , selectedClimbingRoute : Maybe ClimbingRoute
+    , mediaInput : String
     }
 
 

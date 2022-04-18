@@ -4,7 +4,7 @@ import Date
 import Dict exposing (Dict)
 import Html.Styled exposing (Html, input)
 import Html.Styled.Attributes exposing (placeholder, type_, value)
-import Html.Styled.Events exposing (onInput)
+import Html.Styled.Events exposing (onInput, onSubmit)
 import Json.Decode exposing (maybe)
 import Json.Encode
 import List exposing (sortBy)
